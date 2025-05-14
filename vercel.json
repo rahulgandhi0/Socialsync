@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "env": {
+    "NEXT_PUBLIC_SUPABASE_URL": "https://yluhatlkwrbdluaxiewq.supabase.co",
+    "NEXT_PUBLIC_INSTAGRAM_APP_ID": "1033392955358265"
+  }
+} 
