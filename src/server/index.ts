@@ -12,69 +12,58 @@ const app = express();
 // Initialize Sentry for error tracking
 initSentry();
 
-// Security middleware
-app.use(helmet()); // Secure HTTP headers
-app.use(cors(corsOptions)); // CORS protection
-app.use(express.json({ limit: '10mb' })); // Request body parsing with size limit
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// Middleware
+app.use(helmet());
+app.use(cors(corsOptions));
+app.use(express.json());
 
-// Apply rate limiting to all routes
+// Rate limiting
 app.use('/api/', apiLimiter);
-app.use('/api/auth', authLimiter);
-app.use('/api/instagram', instagramLimiter);
-app.use('/api/analytics', analyticsLimiter);
+app.use('/api/auth/', authLimiter);
+app.use('/api/instagram/', instagramLimiter);
+app.use('/api/analytics/', analyticsLimiter);
 
-// Instagram routes
-app.post(
-  '/api/instagram/schedule',
-  validateRequest(schemas.schedulePostSchema),
-  async (req, res) => {
-    // Handler implementation
-  }
-);
-
-app.get(
-  '/api/instagram/auth/callback',
-  validateRequest(schemas.authCallbackSchema),
-  async (req, res) => {
-    // Handler implementation
-  }
-);
-
-app.get(
-  '/api/instagram/analytics',
-  validateRequest(schemas.analyticsRequestSchema),
-  async (req, res) => {
-    // Handler implementation
-  }
-);
-
-app.put(
-  '/api/instagram/posts/:postId',
-  validateRequest(schemas.updatePostSchema),
-  async (req, res) => {
-    // Handler implementation
-  }
-);
-
-app.delete(
-  '/api/instagram/posts/:postId',
-  validateRequest(schemas.deletePostSchema),
-  async (req, res) => {
-    // Handler implementation
-  }
-);
-
-// Error handling middleware
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error(err);
-  res.status(err.status || 500).json({
-    status: 'error',
-    message: err.message || 'Internal server error',
-  });
+// Health check endpoint
+app.get('/api/health', (_req, res) => {
+  res.json({ status: 'ok' });
 });
 
-const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-}); 
+// Instagram endpoints
+app.post(
+  '/api/instagram/exchange-token',
+  validateRequest(schemas.exchangeTokenSchema),
+  async (_req, res) => {
+    res.json({ status: 'ok' });
+  }
+);
+
+app.post(
+  '/api/instagram/refresh-token',
+  validateRequest(schemas.refreshTokenSchema),
+  async (_req, res) => {
+    res.json({ status: 'ok' });
+  }
+);
+
+app.post(
+  '/api/instagram/publish',
+  validateRequest(schemas.publishSchema),
+  async (_req, res) => {
+    res.json({ status: 'ok' });
+  }
+);
+
+app.post(
+  '/api/instagram/schedule',
+  validateRequest(schemas.scheduleSchema),
+  async (_req, res) => {
+    res.json({ status: 'ok' });
+  }
+);
+
+// Error handling
+app.use((_err, _req, res, _next) => {
+  res.status(500).json({ error: 'Internal server error' });
+});
+
+export default app; 

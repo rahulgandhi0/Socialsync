@@ -1,59 +1,61 @@
 import { Request, Response, NextFunction } from 'express';
-import { AnyZodObject, ZodError } from 'zod';
-import { sanitize } from 'isomorphic-dompurify';
+import { z } from 'zod';
+import DOMPurify from 'isomorphic-dompurify';
 
 /**
  * Validate request against a Zod schema
  */
-export const validateRequest = (schema: AnyZodObject) => {
+export function validateRequest(schema: z.ZodSchema) {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // Sanitize input data
-      const sanitizedData = {
-        body: sanitizeObject(req.body),
-        query: sanitizeObject(req.query),
-        params: sanitizeObject(req.params),
-      };
+      // Sanitize and validate request body
+      const sanitizedBody = Object.keys(req.body).reduce((acc, key) => {
+        acc[key] = typeof req.body[key] === 'string' 
+          ? DOMPurify.sanitize(req.body[key])
+          : req.body[key];
+        return acc;
+      }, {} as Record<string, unknown>);
 
-      // Validate against schema
-      await schema.parseAsync(sanitizedData);
-      
-      // Update request with sanitized data
-      req.body = sanitizedData.body;
-      req.query = sanitizedData.query;
-      req.params = sanitizedData.params;
-      
-      return next();
+      const validatedData = await schema.parseAsync(sanitizedBody);
+      req.body = validatedData;
+      next();
     } catch (error) {
-      if (error instanceof ZodError) {
-        return res.status(400).json({
-          status: 'error',
-          message: 'Invalid request data',
-          errors: error.errors,
+      if (error instanceof z.ZodError) {
+        res.status(400).json({
+          error: 'Validation failed',
+          details: error.errors,
+        });
+      } else {
+        res.status(500).json({
+          error: 'Internal server error during validation',
         });
       }
-      return res.status(500).json({
-        status: 'error',
-        message: 'Internal server error during validation',
-      });
     }
   };
-};
+}
 
 /**
  * Recursively sanitize an object's string values
  */
 function sanitizeObject(obj: any): any {
-  if (!obj || typeof obj !== 'object') {
-    return typeof obj === 'string' ? sanitize(obj) : obj;
+  if (obj === null || obj === undefined) {
+    return obj;
+  }
+
+  if (typeof obj === 'string') {
+    return DOMPurify.sanitize(obj);
   }
 
   if (Array.isArray(obj)) {
     return obj.map(item => sanitizeObject(item));
   }
 
-  return Object.keys(obj).reduce((acc, key) => {
-    acc[key] = sanitizeObject(obj[key]);
-    return acc;
-  }, {} as any);
+  if (typeof obj === 'object') {
+    return Object.keys(obj).reduce((acc, key) => {
+      acc[key] = sanitizeObject(obj[key]);
+      return acc;
+    }, {} as Record<string, any>);
+  }
+
+  return obj;
 } 
