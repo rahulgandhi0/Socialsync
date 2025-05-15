@@ -4,7 +4,7 @@ import { useEventContext } from '../context/EventContext.jsx';
 import { useUploadContext } from '../context/UploadContext.jsx';
 import GlowButton from '../components/GlowButton';
 import StepNavigator from '../components/StepNavigator';
-import instagramPublisher from '../utils/publisher';
+import instagramPublisher from '../utils/publisher.ts';
 import { format, addMinutes, isBefore } from 'date-fns';
 import { ChevronLeft, ChevronRight, Calendar, Clock, Check, RefreshCw } from 'react-feather';
 

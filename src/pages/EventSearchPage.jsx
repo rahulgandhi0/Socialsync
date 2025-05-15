@@ -8,8 +8,11 @@ import { useEventContext } from '../context/EventContext.jsx';
 import GlowButton from '../components/GlowButton';
 import StepNavigator from '../components/StepNavigator';
 
-// Use dynamic API key from environment variable or fallback to demo key
-const API_KEY = import.meta.env.VITE_TICKETMASTER_KEY || 'y71MAekKl5RrMqOBYAoAgYe8Zs3BvAkM'; // Default key for demo
+// Use dynamic API key from environment variable
+const API_KEY = import.meta.env.VITE_TICKETMASTER_KEY;
+if (!API_KEY) {
+  throw new Error('Missing required environment variable: VITE_TICKETMASTER_KEY');
+}
 
 // Static arrays for dropdowns
 const MAIN_CATEGORIES = [

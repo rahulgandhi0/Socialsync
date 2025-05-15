@@ -6,6 +6,7 @@ import './index.css'
 import { EventProvider } from './context/EventContext.jsx'
 import { UploadProvider } from './context/UploadContext.jsx'
 import AppLayout from './components/AppLayout'
+import AuthPage from './pages/AuthPage'
 import EventSearchPage from './pages/EventSearchPage'
 import EventDetailsPage from './pages/EventDetailsPage'
 import ImageSelectionPage from './pages/ImageSelectionPage'
@@ -13,7 +14,9 @@ import CropAndOrderPage from './pages/CropAndOrderPage'
 import CaptionSelectionPage from './pages/CaptionSelectionPage'
 import PreviewPage from './pages/PreviewPage'
 import AboutPage from './pages/AboutPage'
-import GlowDemo from './pages/GlowDemo'
+import InstagramConnect from './components/instagram/InstagramConnect'
+import InstagramAuthCallback from './pages/InstagramAuthCallback'
+import ProtectedRoute from './components/auth/ProtectedRoute'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -22,18 +25,49 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<AppLayout />}>
-              {/* Home route - EventSearchPage */}
+              {/* Public routes */}
               <Route index element={<EventSearchPage />} />
-              
-              {/* Add routes for other pages */}
-              <Route path="events" element={<EventSearchPage />} />
-              <Route path="events/:id" element={<EventDetailsPage />} />
-              <Route path="image-selection" element={<ImageSelectionPage />} />
-              <Route path="crop-and-order" element={<CropAndOrderPage />} />
-              <Route path="caption-selection" element={<CaptionSelectionPage />} />
-              <Route path="preview" element={<PreviewPage />} />
               <Route path="about" element={<AboutPage />} />
-              <Route path="demo" element={<GlowDemo />} />
+              <Route path="login" element={<AuthPage />} />
+              <Route path="signup" element={<AuthPage />} />
+              <Route path="instagram/auth" element={<InstagramAuthCallback />} />
+              
+              {/* Protected routes */}
+              <Route path="events" element={
+                <ProtectedRoute>
+                  <EventSearchPage />
+                </ProtectedRoute>
+              } />
+              <Route path="events/:id" element={
+                <ProtectedRoute>
+                  <EventDetailsPage />
+                </ProtectedRoute>
+              } />
+              <Route path="image-selection" element={
+                <ProtectedRoute>
+                  <ImageSelectionPage />
+                </ProtectedRoute>
+              } />
+              <Route path="crop-and-order" element={
+                <ProtectedRoute>
+                  <CropAndOrderPage />
+                </ProtectedRoute>
+              } />
+              <Route path="caption-selection" element={
+                <ProtectedRoute>
+                  <CaptionSelectionPage />
+                </ProtectedRoute>
+              } />
+              <Route path="preview" element={
+                <ProtectedRoute>
+                  <PreviewPage />
+                </ProtectedRoute>
+              } />
+              <Route path="instagram/connect" element={
+                <ProtectedRoute>
+                  <InstagramConnect />
+                </ProtectedRoute>
+              } />
               
               {/* Catch-all route redirects to home */}
               <Route path="*" element={<Navigate to="/" replace />} />

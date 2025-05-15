@@ -3,6 +3,8 @@ CREATE TABLE IF NOT EXISTS instagram_accounts (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   instagram_user_id TEXT NOT NULL,
+  instagram_business_account_id TEXT NOT NULL,
+  instagram_username TEXT NOT NULL,
   access_token TEXT NOT NULL,
   connected_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   UNIQUE(user_id, instagram_user_id)

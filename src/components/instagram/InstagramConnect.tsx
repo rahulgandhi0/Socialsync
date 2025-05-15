@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '../../lib/supabase';
 
 export default function InstagramConnect() {
   const [isConnecting, setIsConnecting] = useState(false);
@@ -8,21 +8,40 @@ export default function InstagramConnect() {
   const handleInstagramConnect = async () => {
     setIsConnecting(true);
     try {
-      // Instagram OAuth URL with required permissions
-      const redirectUri = `${window.location.origin}/api/instagram/callback`;
-      const instagramAuthUrl = `https://api.instagram.com/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_INSTAGRAM_APP_ID}&redirect_uri=${redirectUri}&scope=instagram_basic,instagram_content_publish,instagram_manage_comments,instagram_manage_insights,pages_show_list,pages_read_engagement&response_type=code`;
+      // For development, we'll use the test user flow
+      const redirectUri = import.meta.env.DEV 
+        ? `${window.location.origin}/instagram/auth`  // Local development
+        : `${window.location.origin}/api/instagram/callback`; // Production
+
+      const scopes = [
+        'instagram_basic',
+        'instagram_content_publish',
+        'instagram_manage_comments',
+        'instagram_manage_insights',
+        'pages_show_list',
+        'pages_read_engagement'
+      ].join(',');
+
+      // Use Facebook Login for Instagram test users in development
+      const authUrl = import.meta.env.DEV
+        ? `https://www.facebook.com/v19.0/dialog/oauth?client_id=${import.meta.env.VITE_INSTAGRAM_APP_ID}&redirect_uri=${redirectUri}&scope=${scopes}&response_type=code&state=${Math.random().toString(36).substring(7)}`
+        : `https://api.instagram.com/oauth/authorize?client_id=${import.meta.env.VITE_INSTAGRAM_APP_ID}&redirect_uri=${redirectUri}&scope=${scopes}&response_type=code`;
       
-      // Open Instagram auth in a popup
+      // Open auth in a popup
       const width = 600;
       const height = 700;
       const left = (window.innerWidth - width) / 2;
       const top = (window.innerHeight - height) / 2;
       
-      window.open(
-        instagramAuthUrl,
+      const popup = window.open(
+        authUrl,
         'instagram-oauth',
         `width=${width},height=${height},left=${left},top=${top}`
       );
+
+      if (!popup) {
+        throw new Error('Popup blocked. Please allow popups for this site.');
+      }
 
       // Listen for the auth callback
       const handleMessage = async (event: MessageEvent) => {
@@ -31,30 +50,51 @@ export default function InstagramConnect() {
         if (event.data?.type === 'instagram_auth') {
           const { code } = event.data;
           
-          // Exchange code for access token
+          // Exchange code for access token and account details
           const response = await fetch('/api/instagram/exchange-token', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code }),
+            body: JSON.stringify({ 
+              code,
+              redirectUri, // Send the same redirect URI used for auth
+              isDevelopment: import.meta.env.DEV 
+            }),
           });
 
           if (!response.ok) {
-            throw new Error('Failed to exchange token');
+            const error = await response.json();
+            throw new Error(error.message || 'Failed to exchange token');
           }
 
-          const { access_token, user_id } = await response.json();
+          const { 
+            access_token, 
+            user_id,
+            business_account_id,
+            username,
+            page_access_token 
+          } = await response.json();
+
+          // Get the current user's ID
+          const { data: { user }, error: userError } = await supabase.auth.getUser();
+          if (userError) throw userError;
+          
+          if (!user) {
+            throw new Error('No authenticated user found');
+          }
 
           // Store Instagram credentials in Supabase
-          const { error } = await supabase
+          const { error: dbError } = await supabase
             .from('instagram_accounts')
             .upsert({
-              user_id: (await supabase.auth.getUser()).data.user?.id,
+              user_id: user.id,
               instagram_user_id: user_id,
-              access_token,
+              instagram_business_account_id: business_account_id,
+              instagram_username: username,
+              access_token: page_access_token,
               connected_at: new Date().toISOString(),
             });
 
-          if (error) throw error;
+          if (dbError) throw dbError;
 
           toast.success('Instagram account connected successfully!');
           window.removeEventListener('message', handleMessage);
@@ -66,7 +106,7 @@ export default function InstagramConnect() {
       window.addEventListener('message', handleMessage);
     } catch (error) {
       console.error('Instagram connection error:', error);
-      toast.error('Failed to connect Instagram account');
+      toast.error(error instanceof Error ? error.message : 'Failed to connect Instagram account');
     } finally {
       setIsConnecting(false);
     }
@@ -79,7 +119,10 @@ export default function InstagramConnect() {
           Connect Instagram Account
         </h3>
         <p className="mt-2 text-gray-600">
-          Connect your Instagram Business Account to start scheduling posts
+          {import.meta.env.DEV 
+            ? 'Connect your Instagram Test Account (Development Mode)'
+            : 'Connect your Instagram Business Account to start scheduling posts'
+          }
         </p>
       </div>
 

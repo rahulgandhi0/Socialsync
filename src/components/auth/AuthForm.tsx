@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../../lib/supabase';
 import { toast } from 'react-hot-toast';
 
 export default function AuthForm() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [formData, setFormData] = useState({
@@ -34,7 +34,7 @@ export default function AuthForm() {
           password: formData.password,
         });
         if (error) throw error;
-        router.push('/dashboard');
+        navigate('/dashboard');
         toast.success('Welcome back!');
       }
     } catch (error: any) {

@@ -1,12 +1,20 @@
 import axios from 'axios';
+import { config } from 'dotenv';
 
-// Use the environment variables directly
-const GOOGLE_API_KEY = 'AIzaSyDWt6s2oE6KmTLwoT_gJ_ckUZJ9sONruLA';
-const GOOGLE_SEARCH_ENGINE_ID = 'c1c7630325e7342e9';
+// Load environment variables
+config();
+
+// Use environment variables
+const GOOGLE_API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
+const GOOGLE_SEARCH_ENGINE_ID = import.meta.env.VITE_GOOGLE_SEARCH_ENGINE_ID;
+
+if (!GOOGLE_API_KEY || !GOOGLE_SEARCH_ENGINE_ID) {
+  throw new Error('Missing required environment variables: VITE_GOOGLE_API_KEY and/or VITE_GOOGLE_SEARCH_ENGINE_ID');
+}
 
 async function testGoogleSearch() {
-  console.log('Google API Key:', GOOGLE_API_KEY ? `Present (${GOOGLE_API_KEY})` : 'Missing');
-  console.log('Google Search Engine ID:', GOOGLE_SEARCH_ENGINE_ID ? `Present (${GOOGLE_SEARCH_ENGINE_ID})` : 'Missing');
+  console.log('Google API Key:', GOOGLE_API_KEY ? 'Present (hidden)' : 'Missing');
+  console.log('Google Search Engine ID:', GOOGLE_SEARCH_ENGINE_ID ? 'Present (hidden)' : 'Missing');
   
   try {
     const searchQuery = 'Taylor Swift concert';
