@@ -2,8 +2,11 @@ import React from 'react';
 import { format, subDays } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { PostAnalytics } from '../services/analytics';
-import { Loader2, Calendar, TrendingUp, Users, Clock, Award } from 'lucide-react';
+import { Loader2, Calendar, TrendingUp, Users, Clock, Award, Instagram } from 'lucide-react';
 import { useAnalytics } from '../context/AnalyticsContext';
+import { Link } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+import { useEffect, useState } from 'react';
 
 const timeRangeOptions = [
   { label: 'Last 7 days', days: 7 },
@@ -13,6 +16,24 @@ const timeRangeOptions = [
 
 export default function AnalyticsDashboard() {
   const { summary, timeRange, loading, error, setTimeRange, refreshAnalytics } = useAnalytics();
+  const [isInstagramConnected, setIsInstagramConnected] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    async function checkInstagramConnection() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: account } = await supabase
+          .from('instagram_accounts')
+          .select('instagram_username')
+          .eq('user_id', user.id)
+          .single();
+        
+        setIsInstagramConnected(!!account);
+      }
+    }
+    
+    checkInstagramConnection();
+  }, []);
 
   const handleTimeRangeChange = (days: number) => {
     setTimeRange({
@@ -21,10 +42,32 @@ export default function AnalyticsDashboard() {
     });
   };
 
-  if (loading) {
+  if (loading || isInstagramConnected === null) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+      </div>
+    );
+  }
+
+  if (!isInstagramConnected) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full text-center">
+          <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Instagram className="w-8 h-8 text-purple-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-3">Connect Instagram First</h2>
+          <p className="text-gray-600 mb-6">
+            To view your analytics, you need to connect your Instagram Business Account first.
+          </p>
+          <Link
+            to="/instagram/connect"
+            className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+          >
+            Connect Instagram
+          </Link>
+        </div>
       </div>
     );
   }
@@ -40,6 +83,28 @@ export default function AnalyticsDashboard() {
           >
             Retry
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!summary || !summary.total_posts) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full text-center">
+          <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <TrendingUp className="w-8 h-8 text-purple-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-3">No Analytics Data Yet</h2>
+          <p className="text-gray-600 mb-6">
+            Start creating and publishing posts to see your analytics here. Analytics data will appear after your posts start getting engagement.
+          </p>
+          <Link
+            to="/"
+            className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+          >
+            Create Your First Post
+          </Link>
         </div>
       </div>
     );
@@ -73,66 +138,62 @@ export default function AnalyticsDashboard() {
         </div>
       </div>
 
-      {summary && (
-        <>
-          {/* Key Metrics */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <MetricCard
-              title="Total Posts"
-              value={summary.total_posts}
-              icon={<TrendingUp className="w-6 h-6" />}
-              description="Posts published in selected period"
-            />
-            <MetricCard
-              title="Average Engagement"
-              value={`${(summary.average_engagement_rate * 100).toFixed(2)}%`}
-              icon={<Users className="w-6 h-6" />}
-              description="Average engagement rate per post"
-            />
-            <MetricCard
-              title="Total Reach"
-              value={summary.total_reach.toLocaleString()}
-              icon={<Users className="w-6 h-6" />}
-              description="Unique accounts that saw your posts"
-            />
-            <MetricCard
-              title="Success Rate"
-              value={`${((summary.successful_posts / summary.total_posts) * 100).toFixed(2)}%`}
-              icon={<Award className="w-6 h-6" />}
-              description="Successfully published posts"
-            />
-          </div>
+      {/* Key Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <MetricCard
+          title="Total Posts"
+          value={summary.total_posts}
+          icon={<TrendingUp className="w-6 h-6" />}
+          description="Posts published in selected period"
+        />
+        <MetricCard
+          title="Average Engagement"
+          value={`${(summary.average_engagement_rate * 100).toFixed(2)}%`}
+          icon={<Users className="w-6 h-6" />}
+          description="Average engagement rate per post"
+        />
+        <MetricCard
+          title="Total Reach"
+          value={summary.total_reach.toLocaleString()}
+          icon={<Users className="w-6 h-6" />}
+          description="Unique accounts that saw your posts"
+        />
+        <MetricCard
+          title="Success Rate"
+          value={`${((summary.successful_posts / summary.total_posts) * 100).toFixed(2)}%`}
+          icon={<Award className="w-6 h-6" />}
+          description="Successfully published posts"
+        />
+      </div>
 
-          {/* Posting Time Distribution */}
-          <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-            <h2 className="text-xl font-semibold mb-4">Best Posting Times</h2>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={Object.entries(summary.posting_time_distribution).map(([hour, count]) => ({
-                  hour: format(new Date().setHours(parseInt(hour)), 'ha'),
-                  posts: count,
-                }))}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="hour" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="posts" fill="#8b5cf6" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
+      {/* Posting Time Distribution */}
+      <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+        <h2 className="text-xl font-semibold mb-4">Best Posting Times</h2>
+        <div className="h-80">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={Object.entries(summary.posting_time_distribution).map(([hour, count]) => ({
+              hour: format(new Date().setHours(parseInt(hour)), 'ha'),
+              posts: count,
+            }))}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="hour" />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="posts" fill="#8b5cf6" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
 
-          {/* Best Performing Posts */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <h2 className="text-xl font-semibold mb-4">Top Performing Posts</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {summary.best_performing_posts.map((post) => (
-                <PostCard key={post.id} post={post} />
-              ))}
-            </div>
-          </div>
-        </>
-      )}
+      {/* Best Performing Posts */}
+      <div className="bg-white rounded-xl shadow-lg p-6">
+        <h2 className="text-xl font-semibold mb-4">Top Performing Posts</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {summary.best_performing_posts.map((post) => (
+            <PostCard key={post.id} post={post} />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

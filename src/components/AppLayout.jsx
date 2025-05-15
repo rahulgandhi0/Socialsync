@@ -2,35 +2,62 @@ import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { toast } from 'react-hot-toast';
+import { Loader2 } from 'lucide-react';
 
 const AppLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Check current auth status
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    async function initializeAuth() {
+      try {
+        // Check if Supabase is properly initialized
+        if (!supabase) {
+          throw new Error('Supabase client not initialized');
+        }
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
+        // Check current auth status
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          throw sessionError;
+        }
 
-    return () => subscription.unsubscribe();
-  }, []);
+        setUser(session?.user ?? null);
+        
+        // Listen for auth changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+          setUser(session?.user ?? null);
+          if (!session?.user && !location.pathname.includes('/login')) {
+            navigate('/login');
+          }
+        });
+
+        return () => subscription.unsubscribe();
+      } catch (err) {
+        console.error('Auth initialization error:', err);
+        setError(err.message);
+        toast.error('Authentication error: ' + err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    initializeAuth();
+  }, [navigate, location.pathname]);
 
   const handleSignOut = async () => {
     try {
-      await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
       navigate('/login');
       toast.success('Signed out successfully');
     } catch (error) {
-      toast.error('Error signing out');
+      console.error('Sign out error:', error);
+      toast.error('Error signing out: ' + error.message);
     }
   };
 
@@ -39,59 +66,60 @@ const AppLayout = () => {
     return <Outlet />;
   }
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen p-4">
+        <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full text-center">
+          <h2 className="text-2xl font-bold text-red-600 mb-4">Authentication Error</h2>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <button
+            onClick={() => navigate('/login')}
+            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+          >
+            Go to Login
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    navigate('/login');
+    return null;
+  }
+
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      {/* Animated Banner */}
-      <div className="relative w-full overflow-hidden">
-        {/* Background with enhanced glow */}
-        <div className="absolute inset-0 bg-gradient-to-r from-gradient-start via-gradient-mid to-gradient-end animate-glow-flow opacity-90"></div>
-        
-        {/* Subtle overlay patterns for depth */}
-        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_white_0%,_transparent_50%)]"></div>
-        
-        {/* Content */}
-        <div className="relative z-10 container mx-auto max-w-5xl py-6 px-6 flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-white mb-1 animate-text-shimmer">
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white shadow-sm">
+        <div className="container mx-auto max-w-5xl px-4">
+          <div className="flex items-center justify-between h-16">
+            <Link to="/" className="text-xl font-bold text-gradient-start">
               SocialSync
-            </h1>
-            <p className="text-base text-white text-opacity-90">
-              Making event promotion easy
-            </p>
-          </div>
-          
-          {/* Auth Navigation */}
-          <div className="flex items-center space-x-4">
-            {user ? (
-              <>
-                <span className="text-white">{user.email}</span>
+            </Link>
+            
+            <div className="flex items-center space-x-4">
+              {user && (
                 <button
                   onClick={handleSignOut}
-                  className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-md transition-colors"
+                  className="text-gray-600 hover:text-gray-900"
                 >
                   Sign Out
                 </button>
-              </>
-            ) : (
-              <>
-                <Link
-                  to="/login"
-                  className="px-4 py-2 text-white hover:bg-white/10 rounded-md transition-colors"
-                >
-                  Log In
-                </Link>
-                <Link
-                  to="/signup"
-                  className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-md transition-colors"
-                >
-                  Sign Up
-                </Link>
-              </>
-            )}
+              )}
+            </div>
           </div>
         </div>
-      </div>
-      
+      </header>
+
       {/* Navigation Bar */}
       <div className="bg-white shadow-md">
         <div className="container mx-auto max-w-5xl">
@@ -133,24 +161,11 @@ const AppLayout = () => {
           </nav>
         </div>
       </div>
-      
+
       {/* Main Content */}
-      <main className="flex-grow">
-        {loading ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gradient-start"></div>
-          </div>
-        ) : (
-          <Outlet />
-        )}
+      <main className="container mx-auto max-w-5xl px-4 py-8">
+        <Outlet />
       </main>
-      
-      {/* Footer */}
-      <footer className="bg-gray-800 text-white py-6 mt-auto">
-        <div className="container mx-auto px-4 text-center">
-          <p>&copy; {new Date().getFullYear()} SocialSync. All rights reserved.</p>
-        </div>
-      </footer>
     </div>
   );
 };
