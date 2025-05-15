@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from './lib/supabase';
 import axios from 'axios';
 
 async function testConfigurations() {
@@ -14,7 +14,6 @@ async function testConfigurations() {
     console.log('Anon Key:', supabaseKey ? '✅ Present' : '❌ Missing');
     
     if (supabaseUrl && supabaseKey) {
-      const supabase = createClient(supabaseUrl, supabaseKey);
       const { error } = await supabase.from('instagram_accounts').select('id').limit(0);
       if (error) throw error;
       console.log('✅ Supabase connection successful!\n');

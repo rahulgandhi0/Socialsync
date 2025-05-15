@@ -7,10 +7,10 @@ import { createClient } from '@supabase/supabase-js';
 // Load environment variables
 config();
 
-// Initialize Supabase client
+// Initialize Supabase client with server-side environment variables
 const supabase = createClient(
-  process.env.VITE_SUPABASE_URL!,
-  process.env.VITE_SUPABASE_ANON_KEY!
+  process.env.SUPABASE_URL || '',
+  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 );
 
 // Types and interfaces

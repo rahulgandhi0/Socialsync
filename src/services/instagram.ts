@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '../lib/supabase';
 import axios from 'axios';
 import { addBreadcrumb } from '@sentry/browser';
 import {
@@ -10,11 +10,6 @@ import {
   withRetry,
   checkRateLimit
 } from '../lib/errors';
-
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL!,
-  import.meta.env.VITE_SUPABASE_ANON_KEY!
-);
 
 interface MediaUploadResponse {
   id: string;
