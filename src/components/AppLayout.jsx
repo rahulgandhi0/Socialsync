@@ -10,13 +10,32 @@ const AppLayout = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [initError, setInitError] = useState(null);
 
   useEffect(() => {
     async function initializeAuth() {
       try {
+        // Debug logging for environment variables in production
+        if (import.meta.env.PROD) {
+          console.log('Environment Check:', {
+            supabaseUrl: import.meta.env.VITE_SUPABASE_URL ? '✅' : '❌',
+            supabaseKey: import.meta.env.VITE_SUPABASE_ANON_KEY ? '✅' : '❌',
+          });
+        }
+
         // Check if Supabase is properly initialized
         if (!supabase) {
           throw new Error('Supabase client not initialized');
+        }
+
+        // Test Supabase connection
+        const { data: testData, error: testError } = await supabase
+          .from('instagram_accounts')
+          .select('count')
+          .limit(1);
+
+        if (testError) {
+          throw new Error(`Supabase connection test failed: ${testError.message}`);
         }
 
         // Check current auth status
@@ -27,6 +46,7 @@ const AppLayout = () => {
         }
 
         setUser(session?.user ?? null);
+        setInitError(null);
         
         // Listen for auth changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -39,6 +59,7 @@ const AppLayout = () => {
         return () => subscription.unsubscribe();
       } catch (err) {
         console.error('Auth initialization error:', err);
+        setInitError(err.message);
         setError(err.message);
         toast.error('Authentication error: ' + err.message);
       } finally {
@@ -74,24 +95,45 @@ const AppLayout = () => {
     );
   }
 
-  if (error) {
+  if (error || initError) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
         <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full text-center">
-          <h2 className="text-2xl font-bold text-red-600 mb-4">Authentication Error</h2>
-          <p className="text-gray-600 mb-6">{error}</p>
-          <button
-            onClick={() => navigate('/login')}
-            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-          >
-            Go to Login
-          </button>
+          <h2 className="text-2xl font-bold text-red-600 mb-4">Application Error</h2>
+          <p className="text-gray-600 mb-6">{error || initError}</p>
+          {import.meta.env.PROD && (
+            <div className="text-sm text-gray-500 mb-4">
+              <p>Debug Info:</p>
+              <pre className="bg-gray-100 p-2 rounded mt-2 text-left overflow-auto">
+                {JSON.stringify({
+                  supabaseUrl: import.meta.env.VITE_SUPABASE_URL ? '✅' : '❌',
+                  supabaseKey: import.meta.env.VITE_SUPABASE_ANON_KEY ? '✅' : '❌',
+                  pathname: location.pathname,
+                  timestamp: new Date().toISOString(),
+                }, null, 2)}
+              </pre>
+            </div>
+          )}
+          <div className="space-y-2">
+            <button
+              onClick={() => window.location.reload()}
+              className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 mb-2"
+            >
+              Retry
+            </button>
+            <button
+              onClick={() => navigate('/login')}
+              className="w-full px-4 py-2 border border-purple-600 text-purple-600 rounded-lg hover:bg-purple-50"
+            >
+              Go to Login
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
-  if (!user) {
+  if (!user && !location.pathname.includes('/login')) {
     navigate('/login');
     return null;
   }
