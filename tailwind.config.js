@@ -18,6 +18,9 @@ export default {
       animation: {
         'glow-flow': 'glow-flow 8s ease infinite',
         'text-shimmer': 'text-shimmer 3s ease-in-out infinite',
+        'gradient-x': 'gradient-x 15s ease infinite',
+        'gradient-y': 'gradient-y 15s ease infinite',
+        'gradient-xy': 'gradient-xy 15s ease infinite',
       },
       keyframes: {
         'glow-flow': {
@@ -37,6 +40,36 @@ export default {
           '50%': { 
             textShadow: '0 0 5px rgba(255, 255, 255, 0.4), 0 0 20px rgba(255, 255, 255, 0.4)'
           }
+        },
+        'gradient-y': {
+          '0%, 100%': {
+            'background-size': '400% 400%',
+            'background-position': 'center top'
+          },
+          '50%': {
+            'background-size': '200% 200%',
+            'background-position': 'center center'
+          }
+        },
+        'gradient-x': {
+          '0%, 100%': {
+            'background-size': '200% 200%',
+            'background-position': 'left center'
+          },
+          '50%': {
+            'background-size': '200% 200%',
+            'background-position': 'right center'
+          }
+        },
+        'gradient-xy': {
+          '0%, 100%': {
+            'background-size': '400% 400%',
+            'background-position': 'left center'
+          },
+          '50%': {
+            'background-size': '200% 200%',
+            'background-position': 'right center'
+          }
         }
       },
     },
@@ -44,6 +77,15 @@ export default {
   plugins: [
     function({ addUtilities }) {
       const newUtilities = {
+        '.text-gradient': {
+          'background-clip': 'text',
+          '-webkit-background-clip': 'text',
+          'color': 'transparent',
+        },
+        '.bg-gradient': {
+          'background-size': '200% 200%',
+          'background-position': '0% 0%',
+        },
         '.line-clamp-1': {
           overflow: 'hidden',
           display: '-webkit-box',

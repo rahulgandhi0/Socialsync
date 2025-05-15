@@ -127,12 +127,15 @@ const AppLayout = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gradient-start/5 via-gradient-mid/5 to-gradient-end/5">
       {/* Header */}
-      <header className="bg-white shadow-sm">
+      <header className="bg-white/80 backdrop-blur-sm shadow-sm">
         <div className="container mx-auto max-w-5xl px-4">
           <div className="flex items-center justify-between h-16">
-            <Link to={user ? "/events" : "/"} className="text-xl font-bold text-gradient-start">
+            <Link 
+              to={user ? "/events" : "/"} 
+              className="text-xl font-bold bg-gradient-to-r from-gradient-start via-gradient-mid to-gradient-end bg-clip-text text-transparent"
+            >
               SocialSync
             </Link>
             
@@ -151,7 +154,7 @@ const AppLayout = () => {
       </header>
 
       {/* Navigation Bar */}
-      <nav className="bg-white shadow-md">
+      <nav className="bg-white/80 backdrop-blur-sm shadow-md">
         <div className="container mx-auto max-w-5xl px-4">
           <div className="flex space-x-1">
             {user && (

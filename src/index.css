@@ -6,10 +6,31 @@
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
+  color-scheme: light;
 }
 
-body {
-  margin: 0;
-  min-width: 320px;
-  min-height: 100vh;
+@layer base {
+  body {
+    @apply min-h-screen bg-gradient-to-br from-gradient-start/5 via-gradient-mid/5 to-gradient-end/5;
+    margin: 0;
+    min-width: 320px;
+  }
+}
+
+@layer components {
+  .gradient-text {
+    @apply bg-gradient-to-r from-gradient-start via-gradient-mid to-gradient-end bg-clip-text text-transparent;
+  }
+  
+  .gradient-bg {
+    @apply bg-gradient-to-r from-gradient-start via-gradient-mid to-gradient-end;
+  }
+  
+  .gradient-bg-animated {
+    @apply bg-gradient-to-r from-gradient-start via-gradient-mid to-gradient-end animate-gradient-x;
+  }
+  
+  .gradient-border {
+    @apply border-2 border-transparent bg-gradient-to-r from-gradient-start via-gradient-mid to-gradient-end bg-clip-border;
+  }
 } 
