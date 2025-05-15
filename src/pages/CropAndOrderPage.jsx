@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUploadContext } from '../context/UploadContext';
+import { supabase } from '../lib/supabase';
 import Cropper from 'react-easy-crop';
 import {
   DragDropContext,
@@ -383,7 +384,7 @@ const CropAndOrderPage = () => {
     setOrderedImages(updated);
   };
 
-  // Upload cropped images to Dropbox
+  // Upload cropped images to Supabase
   const uploadCroppedImages = async () => {
     setIsUploading(true);
     setUploadProgress(0);
@@ -403,7 +404,7 @@ const CropAndOrderPage = () => {
 
     try {
       const timestamp = Date.now();
-      const uploadPromises = orderedImages.map(async (image, index) => {
+      const results = await Promise.all(orderedImages.map(async (image, index) => {
         const cropData = crops[image.id];
         console.log('Processing image:', image.id, 'with crop data:', cropData);
 
@@ -434,17 +435,12 @@ const CropAndOrderPage = () => {
           // Create a File object from the blob with quality indicators in name
           const aspectRatioStr = cropData.aspectRatio === ASPECT_RATIOS.PORTRAIT ? '4-5' : '1-1';
           const qualityInfo = `${Math.round(croppedBlob.size / 1024)}KB`;
-          const fileName = `cropped-${aspectRatioStr}-${qualityInfo}-${image.name || 'image.jpg'}`;
+          const fileExt = image.name ? image.name.split('.').pop() : 'jpg';
+          const fileName = `cropped-${aspectRatioStr}-${qualityInfo}-${timestamp}-${index}.${fileExt}`;
           
           const croppedFile = new File([croppedBlob], fileName, {
             type: 'image/jpeg'
           });
-
-          // Get Dropbox token
-          const DROPBOX_ACCESS_TOKEN = import.meta.env.VITE_DROPBOX_ACCESS_TOKEN;
-          if (!DROPBOX_ACCESS_TOKEN) {
-            throw new Error('Dropbox access token is missing');
-          }
 
           console.log('Starting upload for image:', {
             id: image.id,
@@ -453,98 +449,41 @@ const CropAndOrderPage = () => {
             aspectRatio: aspectRatioStr
           });
 
-          // Upload to Dropbox with content type header to preserve quality
-          const uploadUrl = 'https://content.dropboxapi.com/2/files/upload';
-          const path = `/socialsync-cropped/${timestamp}-${index}-${fileName}`;
-          
-          const uploadResponse = await fetch(uploadUrl, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${DROPBOX_ACCESS_TOKEN}`,
-              'Dropbox-API-Arg': JSON.stringify({
-                path: path,
-                mode: 'add',
-                autorename: true,
-                mute: false,
-                strict_conflict: false
-              }),
-              'Content-Type': 'application/octet-stream'
-            },
-            body: croppedFile
-          });
+          // Upload to Supabase storage
+          const filePath = `cropped/${fileName}`;
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('instagram-images')
+            .upload(filePath, croppedFile);
 
-          if (!uploadResponse.ok) {
-            const errorText = await uploadResponse.text();
-            console.error('Upload response error:', {
-              status: uploadResponse.status,
-              statusText: uploadResponse.statusText,
-              errorText
-            });
-            throw new Error(`Upload failed: ${uploadResponse.status} - ${errorText}`);
+          if (uploadError) {
+            throw uploadError;
           }
 
-          const uploadData = await uploadResponse.json();
-          console.log('Upload successful:', uploadData);
-
-          // Get temporary link
-          const tempLinkUrl = 'https://api.dropboxapi.com/2/files/get_temporary_link';
-          const tempLinkResponse = await fetch(tempLinkUrl, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${DROPBOX_ACCESS_TOKEN}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              path: uploadData.path_display
-            })
-          });
-
-          if (!tempLinkResponse.ok) {
-            const errorText = await tempLinkResponse.text();
-            console.error('Temporary link error:', {
-              status: tempLinkResponse.status,
-              statusText: tempLinkResponse.statusText,
-              errorText
-            });
-            throw new Error(`Failed to get temporary link: ${tempLinkResponse.status} - ${errorText}`);
-          }
-
-          const tempLinkData = await tempLinkResponse.json();
-          console.log('Temporary link created:', {
-            ...tempLinkData,
-            fileSize: `${(croppedFile.size / 1024 / 1024).toFixed(2)}MB`,
-            aspectRatio: aspectRatioStr
-          });
-
-          // Update progress
-          setUploadProgress(prev => Math.min(95, prev + (95 / orderedImages.length)));
+          // Get public URL
+          const { data: { publicUrl } } = supabase.storage
+            .from('instagram-images')
+            .getPublicUrl(filePath);
 
           return {
-            id: `${image.id}-cropped`,
-            url: tempLinkData.link,
-            path: uploadData.path_display,
-            order: index,
-            aspectRatio: cropData.aspectRatio === ASPECT_RATIOS.PORTRAIT ? '4:5' : '1:1',
-            cropData: cropData,
-            size: croppedFile.size,
-            dimensions: cropData.aspectRatio === ASPECT_RATIOS.PORTRAIT ? '1080x1350' : '1080x1080'
+            originalId: image.id,
+            url: publicUrl,
+            aspectRatio: cropData.aspectRatio,
+            path: filePath
           };
         } catch (error) {
-          console.error(`Error processing image ${image.id}:`, error);
+          console.error('Error processing image:', error);
           throw error;
         }
-      });
-
-      const results = await Promise.all(uploadPromises);
+      }));
       
       // Verify all uploads meet quality standards
       const lowQualityUploads = results.filter(result => result.size < 500 * 1024);
       if (lowQualityUploads.length > 0) {
         console.warn('Some images may be too low quality for Instagram:', 
           lowQualityUploads.map(img => ({
-            id: img.id,
+            id: img.originalId,
             size: `${(img.size / 1024 / 1024).toFixed(2)}MB`,
-            dimensions: img.dimensions
+            dimensions: img.aspectRatio === ASPECT_RATIOS.PORTRAIT ? '1080x1350' : '1080x1080'
           }))
         );
       }

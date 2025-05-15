@@ -6,6 +6,7 @@ import { useDropzone } from 'react-dropzone';
 import axios from 'axios';
 import GlowButton from '../components/GlowButton';
 import StepNavigator from '../components/StepNavigator';
+import { supabase } from '../lib/supabase';
 
 // Set to false for production, true for testing
 const DEBUG_MODE = false;
@@ -273,105 +274,50 @@ const ImageSelectionPage = () => {
     };
   };
   
-  // Modify uploadToDropbox function with correct folder name
-  const uploadToDropbox = async (file) => {
-    console.log('Starting Dropbox upload...');
+  // Upload to Supabase storage
+  const uploadToSupabase = async (file) => {
+    console.log('Starting Supabase upload...');
     
-    // Get token from environment variable
-    const DROPBOX_ACCESS_TOKEN = import.meta.env.VITE_DROPBOX_ACCESS_TOKEN;
-    
-    // Verify token exists
-    if (!DROPBOX_ACCESS_TOKEN) {
-      console.error('Dropbox access token is missing');
-      throw new Error('Dropbox configuration is missing');
-    }
-
     // Create a temporary URL for immediate display
     const localUrl = URL.createObjectURL(file);
     
     try {
-      // First upload the file
-      const uploadUrl = 'https://content.dropboxapi.com/2/files/upload';
-      const path = `/Apps/SocialsyncIG/${file.name}`;
-      
-      console.log('Uploading to Dropbox path:', path);
-      
-      const uploadResponse = await fetch(uploadUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${DROPBOX_ACCESS_TOKEN}`,
-          'Dropbox-API-Arg': JSON.stringify({
-            path: path,
-            mode: 'add',
-            autorename: true,
-            mute: false
-          }),
-          'Content-Type': 'application/octet-stream'
-        },
-        body: file
-      });
+      const timestamp = Date.now();
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${timestamp}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
+      const filePath = `uploads/${fileName}`;
 
-      if (!uploadResponse.ok) {
-        const errorText = await uploadResponse.text();
-        console.error('Upload failed:', errorText);
-        throw new Error(`Upload failed: ${uploadResponse.status} ${errorText}`);
+      console.log('Uploading to Supabase path:', filePath);
+      
+      // Upload file to Supabase Storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('instagram-images')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        console.error('Upload failed:', uploadError);
+        throw uploadError;
       }
 
-      const uploadData = await uploadResponse.json();
       console.log('Upload successful:', uploadData);
 
-      // Then create a shared link
-      const shareUrl = 'https://api.dropboxapi.com/2/sharing/create_shared_link_with_settings';
-      const shareResponse = await fetch(shareUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${DROPBOX_ACCESS_TOKEN}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          path: uploadData.path_display,
-          settings: {
-            requested_visibility: 'public',
-            audience: 'public',
-            access: 'viewer'
-          }
-        })
-      });
-
-      let shareData;
-      try {
-        shareData = await shareResponse.json();
-        console.log('Share link created:', shareData);
-      } catch (error) {
-        console.error('Error parsing share response:', error);
-        // If sharing fails, still return the upload data
-        return {
-          id: `upload-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-          name: file.name,
-          url: localUrl,
-          thumbnail: localUrl,
-          size: file.size,
-          type: file.type,
-          source: 'Dropbox',
-          path: uploadData.path_display
-        };
-      }
-
-      // Convert the share URL to a raw URL
-      const rawUrl = shareData.url.replace('www.dropbox.com', 'dl.dropboxusercontent.com');
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('instagram-images')
+        .getPublicUrl(filePath);
 
       return {
-        id: `upload-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+        id: `upload-${timestamp}-${Math.random().toString(36).substring(2, 9)}`,
         name: file.name,
-        url: rawUrl,
-        thumbnail: localUrl,
+        url: publicUrl,
+        thumbnail: publicUrl,
         size: file.size,
         type: file.type,
-        source: 'Dropbox',
-        path: uploadData.path_display
+        source: 'Supabase',
+        path: filePath
       };
     } catch (error) {
-      console.error('Dropbox upload error:', error);
+      console.error('Supabase upload error:', error);
       // Return a local-only version if upload fails
       return {
         id: `upload-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
@@ -386,7 +332,7 @@ const ImageSelectionPage = () => {
     }
   };
   
-  // Modify onDrop to handle both successful and failed uploads
+  // Modify onDrop to use Supabase upload
   const onDrop = useCallback(async (acceptedFiles) => {
     if (acceptedFiles.length === 0) return;
     
@@ -401,17 +347,17 @@ const ImageSelectionPage = () => {
         console.log('Created local image:', localImage);
         
         try {
-          // Upload to Dropbox and get public URL
-          const dropboxImage = await uploadToDropbox(file);
-          console.log('Uploaded to Dropbox:', dropboxImage);
+          // Upload to Supabase and get public URL
+          const supabaseImage = await uploadToSupabase(file);
+          console.log('Uploaded to Supabase:', supabaseImage);
           
-          // Merge local and Dropbox data, ensuring we have valid URLs
+          // Merge local and Supabase data, ensuring we have valid URLs
           const finalImage = {
             ...localImage,
-            url: dropboxImage.url || localImage.url,
-            thumbnail: dropboxImage.thumbnail || localImage.thumbnail,
-            source: dropboxImage.source,
-            path: dropboxImage.path
+            url: supabaseImage.url || localImage.url,
+            thumbnail: supabaseImage.thumbnail || localImage.thumbnail,
+            source: supabaseImage.source,
+            path: supabaseImage.path
           };
           
           console.log('Final image object:', finalImage);
@@ -437,7 +383,6 @@ const ImageSelectionPage = () => {
       
       console.log('Valid images to be added:', validImages);
       setUploadedImages(prev => [...prev, ...validImages]);
-      
     } catch (error) {
       console.error('Error handling file upload:', error);
       setUploadError('Failed to process uploaded files');
