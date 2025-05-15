@@ -7,10 +7,9 @@ export default function InstagramConnect() {
   const handleInstagramConnect = async () => {
     setIsConnecting(true);
     try {
-      // For development, we'll use the test user flow
-      const redirectUri = import.meta.env.DEV 
-        ? `${window.location.origin}/instagram/auth`  // Local development
-        : `${window.location.origin}/api/instagram/callback`; // Production
+      // Get the correct redirect URI based on environment
+      const redirectUri = import.meta.env.VITE_INSTAGRAM_REDIRECT_URI || 
+        `${window.location.origin}/instagram/auth`;
 
       const scopes = [
         'instagram_basic',
@@ -24,10 +23,12 @@ export default function InstagramConnect() {
       // Generate a random state for security
       const state = Math.random().toString(36).substring(7);
       
-      // Use Facebook Login for Instagram test users in development
-      const authUrl = import.meta.env.DEV
-        ? `https://www.facebook.com/v19.0/dialog/oauth?client_id=${import.meta.env.VITE_INSTAGRAM_APP_ID}&redirect_uri=${redirectUri}&scope=${scopes}&response_type=code&state=${state}`
-        : `https://api.instagram.com/oauth/authorize?client_id=${import.meta.env.VITE_INSTAGRAM_APP_ID}&redirect_uri=${redirectUri}&scope=${scopes}&response_type=code&state=${state}`;
+      // Use Facebook Login for Instagram
+      const authUrl = `https://api.instagram.com/oauth/authorize?client_id=${
+        import.meta.env.VITE_INSTAGRAM_APP_ID
+      }&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${
+        encodeURIComponent(scopes)
+      }&response_type=code&state=${state}`;
       
       // Open auth in a popup
       const width = 600;
@@ -80,7 +81,7 @@ export default function InstagramConnect() {
             // Clean up
             window.removeEventListener('message', handleMessage);
             
-            // Optionally refresh the page or update UI
+            // Refresh the page
             window.location.reload();
 
           } catch (error) {
@@ -111,10 +112,7 @@ export default function InstagramConnect() {
           Connect Instagram Account
         </h3>
         <p className="mt-2 text-gray-600">
-          {import.meta.env.DEV 
-            ? 'Connect your Instagram Test Account (Development Mode)'
-            : 'Connect your Instagram Business Account to start scheduling posts'
-          }
+          Connect your Instagram Business Account to start scheduling posts
         </p>
       </div>
 
