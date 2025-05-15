@@ -2,12 +2,12 @@ import React from 'react';
 import { format, subDays } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { PostAnalytics } from '../services/analytics';
-import { Loader2, Calendar, TrendingUp, Users, Award, Instagram } from 'lucide-react';
+import { Loader2, Calendar, TrendingUp, Users, Award, Instagram, RefreshCw } from 'lucide-react';
 import { useAnalytics } from '../context/AnalyticsContext';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useEffect, useState } from 'react';
-import { Calendar as CalendarIcon, BarChart2 } from 'react-feather';
+import { Calendar as CalendarIcon } from 'react-feather';
 
 const timeRangeOptions = [
   { label: 'Last 7 days', days: 7 },
@@ -16,7 +16,7 @@ const timeRangeOptions = [
 ];
 
 export default function AnalyticsDashboard() {
-  const { summary, timeRange, loading, error, setTimeRange, refreshAnalytics } = useAnalytics();
+  const { summary, timeRange, loading, error, upcomingPosts, setTimeRange, refreshAnalytics } = useAnalytics();
   const [isInstagramConnected, setIsInstagramConnected] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -113,10 +113,69 @@ export default function AnalyticsDashboard() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Instagram Analytics</h1>
-        <p className="text-gray-600 mt-2">Track your Instagram post performance and engagement</p>
+      {/* Header with Refresh Button */}
+      <div className="mb-8 flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Instagram Analytics</h1>
+          <p className="text-gray-600 mt-2">Track your Instagram post performance and engagement</p>
+        </div>
+        <button
+          onClick={refreshAnalytics}
+          className="p-2 text-gray-600 hover:text-purple-600 rounded-full hover:bg-purple-50 transition-colors"
+          aria-label="Refresh analytics"
+        >
+          <RefreshCw className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* Upcoming Posts Section */}
+      <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">Upcoming Posts</h2>
+          <Link
+            to="/create"
+            className="text-sm text-purple-600 hover:text-purple-700 font-medium"
+          >
+            Schedule New Post
+          </Link>
+        </div>
+        {upcomingPosts.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {upcomingPosts.map((post) => (
+              <div key={post.id} className="bg-gray-50 rounded-lg overflow-hidden">
+                {post.media_urls && post.media_urls[0] && (
+                  <img
+                    src={post.media_urls[0]}
+                    alt="Post preview"
+                    className="w-full h-48 object-cover"
+                  />
+                )}
+                <div className="p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-gray-500">
+                      {format(new Date(post.scheduled_time), 'MMM d, yyyy h:mm a')}
+                    </span>
+                    <span className="text-sm font-medium text-purple-600">
+                      Scheduled
+                    </span>
+                  </div>
+                  <p className="text-gray-700 text-sm line-clamp-2">{post.caption}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8 text-gray-500">
+            <Calendar className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+            <p>No upcoming posts scheduled</p>
+            <Link
+              to="/create"
+              className="text-purple-600 hover:text-purple-700 font-medium mt-2 inline-block"
+            >
+              Create your first post
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* Time Range Selector */}

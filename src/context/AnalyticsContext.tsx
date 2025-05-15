@@ -13,6 +13,7 @@ interface AnalyticsContextType {
   timeRange: TimeRange;
   loading: boolean;
   error: string | null;
+  upcomingPosts: any[];
   setTimeRange: (range: TimeRange) => void;
   refreshAnalytics: () => Promise<void>;
 }
@@ -33,12 +34,29 @@ interface AnalyticsProviderProps {
 
 export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
+  const [upcomingPosts, setUpcomingPosts] = useState<any[]>([]);
   const [timeRange, setTimeRange] = useState<TimeRange>({
     start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // Last 7 days
     end: new Date(),
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const fetchUpcomingPosts = async () => {
+    try {
+      const { data: posts, error: postsError } = await supabase
+        .from('scheduled_posts')
+        .select('*')
+        .gt('scheduled_time', new Date().toISOString())
+        .order('scheduled_time', { ascending: true });
+
+      if (postsError) throw postsError;
+      setUpcomingPosts(posts || []);
+    } catch (err) {
+      console.error('Error fetching upcoming posts:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch upcoming posts');
+    }
+  };
 
   const loadAnalytics = async (userId: string) => {
     try {
@@ -56,9 +74,25 @@ export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
   };
 
   const refreshAnalytics = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      await loadAnalytics(user.id);
+    setLoading(true);
+    setError(null);
+    try {
+      // Fetch analytics summary
+      const { data: analyticsSummary, error: analyticsError } = await supabase
+        .from('post_analytics_summary')
+        .select('*')
+        .single();
+
+      if (analyticsError) throw analyticsError;
+      setSummary(analyticsSummary);
+
+      // Fetch upcoming posts
+      await fetchUpcomingPosts();
+    } catch (err) {
+      console.error('Error refreshing analytics:', err);
+      setError(err instanceof Error ? err.message : 'Failed to refresh analytics');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -80,6 +114,7 @@ export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
     timeRange,
     loading,
     error,
+    upcomingPosts,
     setTimeRange,
     refreshAnalytics,
   };

@@ -1,21 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { ticketmasterService, TicketmasterEvent, SearchParams } from './ticketmaster';
 
-interface CachedEvent {
-  id: string;
-  ticketmaster_data: TicketmasterEvent;
-  cached_at: string;
-  images: {
-    thumbnail?: string;
-    small?: string;
-    medium?: string;
-    large?: string;
-    hero?: string;
-  };
-  formatted_data: ReturnType<typeof ticketmasterService.formatEventData>;
-  interaction_count: number;
-}
-
 interface EventInteraction {
   event_id: string;
   count: number;

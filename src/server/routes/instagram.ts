@@ -258,7 +258,7 @@ router.post('/exchange-token', async (req, res) => {
 });
 
 // Token refresh endpoint
-router.post('/refresh-token', async (req, res) => {
+router.post('/refresh-token', async (_req, res) => {
   try {
     // Get user ID from Supabase auth
     const { data: { user }, error: authError } = await supabase.auth.getUser();

@@ -1,4 +1,4 @@
-import { handleError } from '@/lib/errors';
+import { handleError } from '../lib/errors';
 
 // Types
 interface PublishResult {
@@ -6,7 +6,7 @@ interface PublishResult {
   error?: string;
 }
 
-export async function publishContent(content: unknown): Promise<PublishResult> {
+export default async function publishContent(content: unknown): Promise<PublishResult> {
   try {
     // Implementation will be added later
     console.log('Publishing content:', content);
