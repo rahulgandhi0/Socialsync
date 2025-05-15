@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -27,7 +27,7 @@ if (!supabaseUrl || !supabaseKey) {
   throw error;
 }
 
-let supabase;
+let supabase: SupabaseClient;
 
 try {
   // Create the Supabase client
@@ -65,5 +65,6 @@ try {
   throw error;
 }
 
-// Export the initialized client
-export { supabase }; 
+// Export the initialized client and its type
+export { supabase };
+export type { SupabaseClient }; 
