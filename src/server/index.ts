@@ -1,4 +1,4 @@
-import express, { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { corsOptions } from './middleware/cors.js';
 import { apiLimiter, authLimiter, instagramLimiter, analyticsLimiter } from './middleware/rateLimit.js';
@@ -62,10 +62,8 @@ app.post(
 );
 
 // Error handling
-const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
+app.use((_error: Error, _req: Request, res: Response, _next: NextFunction) => {
   res.status(500).json({ error: 'Internal server error' });
-};
-
-app.use(errorHandler);
+});
 
 export default app;

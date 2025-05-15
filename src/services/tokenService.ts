@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import { encrypt, decrypt } from '../utils/encryption';
+import { encrypt, decrypt, generateKey } from '@/utils/encryption';
 
 interface TokenData {
   access_token: string;
@@ -11,14 +11,15 @@ interface TokenData {
 class TokenService {
   private readonly TABLE_NAME = 'instagram_tokens';
   private readonly TOKEN_EXPIRY = 60 * 24 * 60 * 60 * 1000; // 60 days in milliseconds
+  private readonly encryptionKey = generateKey();
 
   /**
    * Store encrypted tokens in Supabase
    */
   async storeTokens(userId: string, tokens: Partial<TokenData>): Promise<void> {
     try {
-      const encryptedAccessToken = tokens.access_token ? encrypt(tokens.access_token) : null;
-      const encryptedRefreshToken = tokens.refresh_token ? encrypt(tokens.refresh_token) : null;
+      const encryptedAccessToken = tokens.access_token ? encrypt(tokens.access_token, this.encryptionKey) : null;
+      const encryptedRefreshToken = tokens.refresh_token ? encrypt(tokens.refresh_token, this.encryptionKey) : null;
       
       const { error } = await supabase
         .from(this.TABLE_NAME)
@@ -52,8 +53,8 @@ class TokenService {
       if (!data) return null;
 
       return {
-        access_token: data.access_token ? decrypt(data.access_token) : '',
-        refresh_token: data.refresh_token ? decrypt(data.refresh_token) : '',
+        access_token: data.access_token ? decrypt(data.access_token, this.encryptionKey, data.iv) : '',
+        refresh_token: data.refresh_token ? decrypt(data.refresh_token, this.encryptionKey, data.iv) : '',
         expires_at: data.expires_at,
         user_id: data.user_id
       };

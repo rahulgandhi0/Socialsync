@@ -2,11 +2,12 @@ import React from 'react';
 import { format, subDays } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { PostAnalytics } from '../services/analytics';
-import { Loader2, Calendar, TrendingUp, Users, Clock, Award, Instagram } from 'lucide-react';
+import { Loader2, Calendar, TrendingUp, Users, Award, Instagram } from 'lucide-react';
 import { useAnalytics } from '../context/AnalyticsContext';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useEffect, useState } from 'react';
+import { Calendar as CalendarIcon, BarChart2 } from 'react-feather';
 
 const timeRangeOptions = [
   { label: 'Last 7 days', days: 7 },
@@ -120,7 +121,7 @@ export default function AnalyticsDashboard() {
 
       {/* Time Range Selector */}
       <div className="mb-8 flex items-center space-x-4">
-        <Calendar className="w-5 h-5 text-gray-500" />
+        <CalendarIcon className="w-5 h-5 text-gray-500" />
         <div className="flex space-x-2">
           {timeRangeOptions.map(option => (
             <button

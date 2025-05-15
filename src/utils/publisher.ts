@@ -1,9 +1,4 @@
-import { supabase } from '@/lib/supabase';
 import { handleError } from '@/lib/errors';
-
-// Constants
-const BATCH_SIZE = 10;
-const RETRY_DELAY = 1000;
 
 // Types
 interface PublishResult {
@@ -11,9 +6,10 @@ interface PublishResult {
   error?: string;
 }
 
-export async function publishContent(content: any): Promise<PublishResult> {
+export async function publishContent(content: unknown): Promise<PublishResult> {
   try {
-    // Implementation
+    // Implementation will be added later
+    console.log('Publishing content:', content);
     return { success: true };
   } catch (error) {
     handleError(error);

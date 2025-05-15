@@ -105,13 +105,13 @@ class InstagramService {
         )
       );
 
-      const { id, status_code }: MediaUploadResponse = response.data;
+      const { id }: MediaUploadResponse = response.data;
 
-      // Check upload status
+      // Check media upload status
       const statusResponse = await this.checkMediaStatus(id, accessToken);
       if (statusResponse.status_code !== 200) {
         throw new MediaError(`Media upload failed: ${statusResponse.status_code}`, {
-          mediaUrl,
+          mediaId: id,
           statusCode: statusResponse.status_code,
         });
       }

@@ -1,4 +1,4 @@
-import React from 'react';
+import { Auth } from '@supabase/auth-ui-react';
 import AuthForm from '../components/auth/AuthForm';
 
 export default function AuthPage() {
