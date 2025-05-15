@@ -116,6 +116,12 @@ const AppLayout = () => {
                 >
                   Connect Instagram
                 </Link>
+                <Link 
+                  to="/analytics" 
+                  className={`px-4 py-3 font-medium transition-colors hover:bg-gray-100 ${location.pathname === '/analytics' ? 'border-b-2 border-gradient-start text-gradient-start' : 'text-gray-700'}`}
+                >
+                  Analytics
+                </Link>
               </>
             )}
             <Link 

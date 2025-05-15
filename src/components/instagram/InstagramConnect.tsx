@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { supabase } from '../../lib/supabase';
 
 export default function InstagramConnect() {
   const [isConnecting, setIsConnecting] = useState(false);
@@ -22,10 +21,13 @@ export default function InstagramConnect() {
         'pages_read_engagement'
       ].join(',');
 
+      // Generate a random state for security
+      const state = Math.random().toString(36).substring(7);
+      
       // Use Facebook Login for Instagram test users in development
       const authUrl = import.meta.env.DEV
-        ? `https://www.facebook.com/v19.0/dialog/oauth?client_id=${import.meta.env.VITE_INSTAGRAM_APP_ID}&redirect_uri=${redirectUri}&scope=${scopes}&response_type=code&state=${Math.random().toString(36).substring(7)}`
-        : `https://api.instagram.com/oauth/authorize?client_id=${import.meta.env.VITE_INSTAGRAM_APP_ID}&redirect_uri=${redirectUri}&scope=${scopes}&response_type=code`;
+        ? `https://www.facebook.com/v19.0/dialog/oauth?client_id=${import.meta.env.VITE_INSTAGRAM_APP_ID}&redirect_uri=${redirectUri}&scope=${scopes}&response_type=code&state=${state}`
+        : `https://api.instagram.com/oauth/authorize?client_id=${import.meta.env.VITE_INSTAGRAM_APP_ID}&redirect_uri=${redirectUri}&scope=${scopes}&response_type=code&state=${state}`;
       
       // Open auth in a popup
       const width = 600;
@@ -47,59 +49,49 @@ export default function InstagramConnect() {
       const handleMessage = async (event: MessageEvent) => {
         if (event.origin !== window.location.origin) return;
 
+        // Verify state to prevent CSRF
+        if (event.data?.state !== state) {
+          throw new Error('Invalid state parameter');
+        }
+
         if (event.data?.type === 'instagram_auth') {
           const { code } = event.data;
           
-          // Exchange code for access token and account details
-          const response = await fetch('/api/instagram/exchange-token', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              code,
-              redirectUri, // Send the same redirect URI used for auth
-              isDevelopment: import.meta.env.DEV 
-            }),
-          });
-
-          if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message || 'Failed to exchange token');
-          }
-
-          const { 
-            access_token, 
-            user_id,
-            business_account_id,
-            username,
-            page_access_token 
-          } = await response.json();
-
-          // Get the current user's ID
-          const { data: { user }, error: userError } = await supabase.auth.getUser();
-          if (userError) throw userError;
-          
-          if (!user) {
-            throw new Error('No authenticated user found');
-          }
-
-          // Store Instagram credentials in Supabase
-          const { error: dbError } = await supabase
-            .from('instagram_accounts')
-            .upsert({
-              user_id: user.id,
-              instagram_user_id: user_id,
-              instagram_business_account_id: business_account_id,
-              instagram_username: username,
-              access_token: page_access_token,
-              connected_at: new Date().toISOString(),
+          try {
+            // Exchange code for access token and account details
+            const response = await fetch('/api/instagram/exchange-token', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                code,
+                redirectUri
+              }),
             });
 
-          if (dbError) throw dbError;
+            const data = await response.json();
 
-          toast.success('Instagram account connected successfully!');
-          window.removeEventListener('message', handleMessage);
+            if (!response.ok) {
+              throw new Error(data.error || 'Failed to exchange token');
+            }
+
+            // Success! Account connected
+            toast.success(`Successfully connected Instagram account @${data.instagram_username}!`);
+            
+            // Clean up
+            window.removeEventListener('message', handleMessage);
+            
+            // Optionally refresh the page or update UI
+            window.location.reload();
+
+          } catch (error) {
+            console.error('Token exchange error:', error);
+            toast.error(error instanceof Error ? error.message : 'Failed to connect Instagram account');
+          }
         } else if (event.data?.type === 'instagram_auth_error') {
-          throw new Error(event.data.error || 'Failed to connect Instagram account');
+          const errorMessage = event.data.error || 'Failed to connect Instagram account';
+          console.error('Instagram auth error:', errorMessage);
+          toast.error(errorMessage);
+          window.removeEventListener('message', handleMessage);
         }
       };
 
