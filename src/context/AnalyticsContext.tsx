@@ -64,7 +64,7 @@ export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
 
   // Load analytics when timeRange changes or user auth state changes
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
         await loadAnalytics(session.user.id);
       } else {

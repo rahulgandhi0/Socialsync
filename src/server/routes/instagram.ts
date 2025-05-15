@@ -138,8 +138,8 @@ async function getInstagramBusinessAccount(accessToken: string): Promise<{
 }
 
 // Instagram OAuth callback handler
-router.get('/callback', (req, res) => {
-  const { code, error, error_reason, state } = req.query;
+router.get('/callback', (_req, res) => {
+  const { code, error, error_reason, state } = _req.query;
   
   // Serve an HTML page that posts the result back to the opener window
   res.send(`

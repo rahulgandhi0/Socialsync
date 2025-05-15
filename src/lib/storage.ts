@@ -2,10 +2,6 @@ import { StorageError } from '@supabase/storage-js';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from './supabase';
 
-interface SupabaseStorageResponse {
-  publicUrl: string;
-}
-
 export async function uploadImageToSupabase(file: File): Promise<string> {
   try {
     const fileExt = file.name.split('.').pop();

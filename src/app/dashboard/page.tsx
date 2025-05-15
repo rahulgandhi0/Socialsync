@@ -1,5 +1,5 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar, Clock, CheckCircle } from 'react-feather';
+import { Calendar, CheckCircle } from 'react-feather';
 import { supabase } from '../../lib/supabase';
 
 async function getScheduledPosts() {
@@ -63,7 +63,7 @@ export default async function DashboardPage() {
                 />
                 <div className="p-4">
                   <p className="text-sm text-gray-500 flex items-center gap-2 mb-2">
-                    <Clock className="w-4 h-4" />
+                    <Calendar className="w-4 h-4" />
                     {new Date(post.scheduled_time).toLocaleString()}
                   </p>
                   <p className="text-gray-700 line-clamp-2">{post.caption}</p>

@@ -9,13 +9,7 @@ export function validateRequest(schema: z.ZodSchema) {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
       // Sanitize and validate request body
-      const sanitizedBody = Object.keys(req.body).reduce((acc, key) => {
-        acc[key] = typeof req.body[key] === 'string' 
-          ? DOMPurify.sanitize(req.body[key])
-          : req.body[key];
-        return acc;
-      }, {} as Record<string, unknown>);
-
+      const sanitizedBody = sanitizeObject(req.body);
       const validatedData = await schema.parseAsync(sanitizedBody);
       req.body = validatedData;
       next();
