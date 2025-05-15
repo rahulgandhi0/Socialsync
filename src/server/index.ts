@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
 import cors from 'cors';
 import { corsOptions } from './middleware/cors.js';
 import { apiLimiter, authLimiter, instagramLimiter, analyticsLimiter } from './middleware/rateLimit.js';
@@ -31,7 +31,7 @@ app.get('/api/health', (_req, res) => {
 // Instagram endpoints
 app.post(
   '/api/instagram/exchange-token',
-  validateRequest(schemas.exchangeTokenSchema),
+  validateRequest(schemas.authCallbackSchema),
   async (_req, res) => {
     res.json({ status: 'ok' });
   }
@@ -39,7 +39,7 @@ app.post(
 
 app.post(
   '/api/instagram/refresh-token',
-  validateRequest(schemas.refreshTokenSchema),
+  validateRequest(schemas.authCallbackSchema),
   async (_req, res) => {
     res.json({ status: 'ok' });
   }
@@ -47,7 +47,7 @@ app.post(
 
 app.post(
   '/api/instagram/publish',
-  validateRequest(schemas.publishSchema),
+  validateRequest(schemas.schedulePostSchema),
   async (_req, res) => {
     res.json({ status: 'ok' });
   }
@@ -55,15 +55,17 @@ app.post(
 
 app.post(
   '/api/instagram/schedule',
-  validateRequest(schemas.scheduleSchema),
+  validateRequest(schemas.schedulePostSchema),
   async (_req, res) => {
     res.json({ status: 'ok' });
   }
 );
 
 // Error handling
-app.use((_err, _req, res, _next) => {
+const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   res.status(500).json({ error: 'Internal server error' });
-});
+};
 
-export default app; 
+app.use(errorHandler);
+
+export default app;

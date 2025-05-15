@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { toast } from 'react-hot-toast';
 import { uploadImageToSupabase, deleteImageFromSupabase } from '@/lib/storage';
-import { Trash2, Upload, Image as ImageIcon } from 'react-feather';
+import { Trash2, Upload } from 'react-feather';
 
 interface ImageUploadProps {
   onImageUploaded: (url: string) => void;

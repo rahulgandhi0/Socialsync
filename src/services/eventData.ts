@@ -16,6 +16,11 @@ interface CachedEvent {
   interaction_count: number;
 }
 
+interface EventInteraction {
+  event_id: string;
+  count: number;
+}
+
 class EventDataService {
   private readonly CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
   private readonly CACHE_THRESHOLD = 5; // Number of interactions before caching
@@ -84,15 +89,19 @@ class EventDataService {
   private async updateEventCache(events: TicketmasterEvent[]) {
     try {
       // Get interaction counts for these events
-      const { data: interactions } = await supabase
+      const { data: interactionsByEvent } = await supabase
         .from('event_interactions')
         .select('event_id, count')
-        .in('event_id', events.map(e => e.id))
-        .group_by('event_id');
+        .in('event_id', events.map(e => e.id));
+
+      const eventInteractions = (interactionsByEvent || []).map((interaction: EventInteraction) => ({
+        event_id: interaction.event_id,
+        count: Number(interaction.count)
+      }));
 
       // Cache events that meet the threshold
       const eventsToCache = events.filter(event => {
-        const interactionCount = interactions?.find(i => i.event_id === event.id)?.count || 0;
+        const interactionCount = eventInteractions.find(i => i.event_id === event.id)?.count || 0;
         return interactionCount >= this.CACHE_THRESHOLD;
       });
 
