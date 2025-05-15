@@ -27,44 +27,28 @@ if (!supabaseUrl || !supabaseKey) {
   throw error;
 }
 
-let supabase: SupabaseClient;
-
-try {
-  // Create the Supabase client
-  supabase = createClient(supabaseUrl, supabaseKey, {
-    auth: {
-      autoRefreshToken: true,
-      persistSession: true,
-      detectSessionInUrl: true
-    },
-    global: {
-      headers: {
-        'x-application-name': 'socialsync',
-      },
-    },
-  });
-
-  // Test the connection immediately
-  if (import.meta.env.PROD) {
-    // Using async IIFE to handle the promise properly
-    (async () => {
-      try {
-        const { error } = await supabase.from('instagram_accounts').select('count').limit(1);
-        if (error) {
-          console.error('Supabase Connection Test Failed:', error);
-        } else {
-          console.log('✅ Supabase Connection Test Successful');
-        }
-      } catch (error) {
-        console.error('Supabase Connection Test Error:', error);
-      }
-    })();
+export const supabase = createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true,
+    storageKey: 'socialsync-auth-token',
+    storage: window.localStorage
   }
-} catch (error) {
-  console.error('Supabase Client Creation Error:', error);
-  throw error;
+});
+
+// Test the connection in development only
+if (import.meta.env.DEV) {
+  supabase.from('instagram_accounts').select('count').limit(1)
+    .then(({ error }) => {
+      if (error) {
+        console.error('Supabase Connection Test Failed:', error);
+      } else {
+        console.log('✅ Supabase Connection Test Successful');
+      }
+    })
+    .catch(console.error);
 }
 
 // Export the initialized client and its type
-export { supabase };
 export type { SupabaseClient }; 

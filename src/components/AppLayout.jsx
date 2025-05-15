@@ -13,27 +13,26 @@ const AppLayout = () => {
 
   useEffect(() => {
     let mounted = true;
+    let authListener = null;
 
     async function initializeAuth() {
       try {
         // Check current auth status
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        if (sessionError) {
-          throw sessionError;
-        }
+        if (sessionError) throw sessionError;
 
         if (mounted) {
           setUser(session?.user ?? null);
+          setLoading(false);
           
-          // If no user and not on auth pages, redirect to login
-          if (!session?.user && !location.pathname.includes('/login') && !location.pathname.includes('/signup')) {
-            navigate('/login');
+          // Handle navigation after setting loading to false
+          if (!session?.user && !location.pathname.includes('/login') && !location.pathname.includes('/signup') && !location.pathname.includes('/about')) {
+            navigate('/login', { replace: true });
           }
           
-          // If user exists and on auth pages, redirect to events
           if (session?.user && (location.pathname.includes('/login') || location.pathname.includes('/signup'))) {
-            navigate('/events');
+            navigate('/events', { replace: true });
           }
         }
         
@@ -44,30 +43,22 @@ const AppLayout = () => {
           const currentUser = session?.user ?? null;
           setUser(currentUser);
           
-          // If user is not authenticated and not on login/signup page, redirect to login
-          if (!currentUser && !location.pathname.includes('/login') && !location.pathname.includes('/signup')) {
-            navigate('/login');
+          if (!currentUser && !location.pathname.includes('/login') && !location.pathname.includes('/signup') && !location.pathname.includes('/about')) {
+            navigate('/login', { replace: true });
           }
           
-          // If user is authenticated and on login/signup page, redirect to events
           if (currentUser && (location.pathname.includes('/login') || location.pathname.includes('/signup'))) {
-            navigate('/events');
+            navigate('/events', { replace: true });
           }
         });
 
-        return () => {
-          mounted = false;
-          subscription.unsubscribe();
-        };
+        authListener = subscription;
       } catch (err) {
         console.error('Auth initialization error:', err);
         if (mounted) {
           setError(err.message);
-          toast.error('Authentication error: ' + err.message);
-        }
-      } finally {
-        if (mounted) {
           setLoading(false);
+          toast.error('Authentication error: ' + err.message);
         }
       }
     }
@@ -76,18 +67,24 @@ const AppLayout = () => {
 
     return () => {
       mounted = false;
+      if (authListener) {
+        authListener.unsubscribe();
+      }
     };
   }, [navigate, location.pathname]);
 
   const handleSignOut = async () => {
     try {
+      setLoading(true);
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-      navigate('/login');
+      navigate('/login', { replace: true });
       toast.success('Signed out successfully');
     } catch (error) {
       console.error('Sign out error:', error);
       toast.error('Error signing out: ' + error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -127,12 +124,6 @@ const AppLayout = () => {
         </div>
       </div>
     );
-  }
-
-  // If no user and not on auth pages, redirect to login
-  if (!user && !location.pathname.includes('/login') && !location.pathname.includes('/signup')) {
-    navigate('/login');
-    return null;
   }
 
   return (
