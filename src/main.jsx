@@ -29,7 +29,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             <Routes>
               <Route path="/" element={<AppLayout />}>
                 {/* Public routes */}
-                <Route index element={<EventSearchPage />} />
+                <Route index element={<Navigate to="/login" replace />} />
                 <Route path="about" element={<AboutPage />} />
                 <Route path="login" element={<AuthPage />} />
                 <Route path="signup" element={<AuthPage />} />
@@ -77,8 +77,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
                   </ProtectedRoute>
                 } />
                 
-                {/* Catch-all route redirects to home */}
-                <Route path="*" element={<Navigate to="/" replace />} />
+                {/* Catch-all route redirects to login */}
+                <Route path="*" element={<Navigate to="/login" replace />} />
               </Route>
             </Routes>
           </BrowserRouter>

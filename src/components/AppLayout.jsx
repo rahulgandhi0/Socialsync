@@ -12,6 +12,8 @@ const AppLayout = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    let mounted = true;
+
     async function initializeAuth() {
       try {
         // Check current auth status
@@ -21,10 +23,24 @@ const AppLayout = () => {
           throw sessionError;
         }
 
-        setUser(session?.user ?? null);
+        if (mounted) {
+          setUser(session?.user ?? null);
+          
+          // If no user and not on auth pages, redirect to login
+          if (!session?.user && !location.pathname.includes('/login') && !location.pathname.includes('/signup')) {
+            navigate('/login');
+          }
+          
+          // If user exists and on auth pages, redirect to events
+          if (session?.user && (location.pathname.includes('/login') || location.pathname.includes('/signup'))) {
+            navigate('/events');
+          }
+        }
         
         // Listen for auth changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+          if (!mounted) return;
+          
           const currentUser = session?.user ?? null;
           setUser(currentUser);
           
@@ -39,17 +55,28 @@ const AppLayout = () => {
           }
         });
 
-        return () => subscription.unsubscribe();
+        return () => {
+          mounted = false;
+          subscription.unsubscribe();
+        };
       } catch (err) {
         console.error('Auth initialization error:', err);
-        setError(err.message);
-        toast.error('Authentication error: ' + err.message);
+        if (mounted) {
+          setError(err.message);
+          toast.error('Authentication error: ' + err.message);
+        }
       } finally {
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     }
 
     initializeAuth();
+
+    return () => {
+      mounted = false;
+    };
   }, [navigate, location.pathname]);
 
   const handleSignOut = async () => {
@@ -102,7 +129,8 @@ const AppLayout = () => {
     );
   }
 
-  if (!user && !location.pathname.includes('/login')) {
+  // If no user and not on auth pages, redirect to login
+  if (!user && !location.pathname.includes('/login') && !location.pathname.includes('/signup')) {
     navigate('/login');
     return null;
   }
@@ -113,7 +141,7 @@ const AppLayout = () => {
       <header className="bg-white shadow-sm">
         <div className="container mx-auto max-w-5xl px-4">
           <div className="flex items-center justify-between h-16">
-            <Link to="/" className="text-xl font-bold text-gradient-start">
+            <Link to={user ? "/events" : "/"} className="text-xl font-bold text-gradient-start">
               SocialSync
             </Link>
             
@@ -135,14 +163,14 @@ const AppLayout = () => {
       <nav className="bg-white shadow-md">
         <div className="container mx-auto max-w-5xl px-4">
           <div className="flex space-x-1">
-            <Link 
-              to="/events" 
-              className={`px-4 py-3 font-medium transition-colors hover:bg-gray-100 ${location.pathname.includes('/events') ? 'border-b-2 border-gradient-start text-gradient-start' : 'text-gray-700'}`}
-            >
-              Events
-            </Link>
             {user && (
               <>
+                <Link 
+                  to="/events" 
+                  className={`px-4 py-3 font-medium transition-colors hover:bg-gray-100 ${location.pathname.includes('/events') ? 'border-b-2 border-gradient-start text-gradient-start' : 'text-gray-700'}`}
+                >
+                  Events
+                </Link>
                 <Link 
                   to="/instagram/connect" 
                   className={`px-4 py-3 font-medium transition-colors hover:bg-gray-100 ${location.pathname === '/instagram/connect' ? 'border-b-2 border-gradient-start text-gradient-start' : 'text-gray-700'}`}
