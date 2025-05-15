@@ -19,7 +19,7 @@ export default defineConfig({
       '/api': {
         target: process.env.VITE_API_URL || 'http://localhost:5001',
         changeOrigin: true,
-        secure: process.env.NODE_ENV === 'production'
+        secure: true
       }
     }
   },
@@ -33,6 +33,11 @@ export default defineConfig({
           supabase: ['@supabase/supabase-js']
         }
       }
-    }
+    },
+    assetsDir: 'assets',
+    chunkSizeWarningLimit: 1000
+  },
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'react-router-dom', '@supabase/supabase-js']
   }
 }); 
