@@ -7,13 +7,37 @@
   line-height: 1.5;
   font-weight: 400;
   color-scheme: light;
+  
+  --header-height: 4rem;
+  --nav-height: 3rem;
+  --content-max-width: 1280px;
 }
 
 @layer base {
   body {
-    @apply min-h-screen bg-gradient-to-br from-gradient-start/5 via-gradient-mid/5 to-gradient-end/5;
+    @apply min-h-screen bg-mesh-gradient text-surface-800;
     margin: 0;
     min-width: 320px;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold tracking-tight;
+  }
+
+  h1 {
+    @apply text-4xl md:text-5xl lg:text-6xl;
+  }
+
+  h2 {
+    @apply text-3xl md:text-4xl lg:text-5xl;
+  }
+
+  h3 {
+    @apply text-2xl md:text-3xl;
+  }
+
+  a {
+    @apply text-gradient-start hover:text-gradient-mid transition-colors duration-200;
   }
 }
 
@@ -23,14 +47,60 @@
   }
   
   .gradient-bg {
-    @apply bg-gradient-to-r from-gradient-start via-gradient-mid to-gradient-end;
+    @apply bg-gradient-to-r from-gradient-start via-gradient-mid to-gradient-end text-white;
   }
   
   .gradient-bg-animated {
-    @apply bg-gradient-to-r from-gradient-start via-gradient-mid to-gradient-end animate-gradient-x;
+    @apply gradient-bg animate-gradient-x;
   }
   
   .gradient-border {
     @apply border-2 border-transparent bg-gradient-to-r from-gradient-start via-gradient-mid to-gradient-end bg-clip-border;
+  }
+
+  .glass-card {
+    @apply glass rounded-2xl shadow-glass hover:shadow-glass-hover transition-shadow duration-300;
+  }
+
+  .glass-card-dark {
+    @apply glass-dark rounded-2xl shadow-glass hover:shadow-glass-hover transition-shadow duration-300;
+  }
+
+  .button-primary {
+    @apply gradient-bg px-6 py-2.5 rounded-lg font-medium 
+           shadow-lg hover:shadow-xl active:shadow-md
+           transform hover:-translate-y-0.5 active:translate-y-0
+           transition-all duration-200 
+           focus:outline-none focus:ring-2 focus:ring-gradient-mid focus:ring-opacity-50;
+  }
+
+  .button-secondary {
+    @apply bg-white px-6 py-2.5 rounded-lg font-medium
+           border border-surface-200 text-surface-700
+           hover:bg-surface-50 active:bg-surface-100
+           shadow-sm hover:shadow active:shadow-inner
+           transform hover:-translate-y-0.5 active:translate-y-0
+           transition-all duration-200
+           focus:outline-none focus:ring-2 focus:ring-surface-200;
+  }
+
+  .input-primary {
+    @apply w-full px-4 py-2.5 rounded-lg
+           border border-surface-200 
+           focus:border-gradient-mid focus:ring-1 focus:ring-gradient-mid
+           bg-white/50 backdrop-blur-sm
+           placeholder:text-surface-400
+           transition-all duration-200;
+  }
+
+  .nav-link {
+    @apply px-4 py-2 rounded-lg font-medium
+           text-surface-600 hover:text-surface-900
+           hover:bg-white/50 backdrop-blur-sm
+           transition-all duration-200;
+  }
+
+  .nav-link-active {
+    @apply text-gradient-start bg-white/70;
   }
 } 

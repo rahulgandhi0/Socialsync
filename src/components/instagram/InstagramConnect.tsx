@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { toast } from 'react-hot-toast';
+import { Instagram, Loader2 } from 'lucide-react';
 
 export default function InstagramConnect() {
   const [isConnecting, setIsConnecting] = useState(false);
@@ -106,33 +107,62 @@ export default function InstagramConnect() {
   };
 
   return (
-    <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl p-8">
-      <div className="text-center mb-8">
-        <h3 className="text-2xl font-bold text-gray-900">
-          Connect Instagram Account
-        </h3>
-        <p className="mt-2 text-gray-600">
-          Connect your Instagram Business Account to start scheduling posts
+    <div className="max-w-2xl mx-auto">
+      <div className="glass-card p-8 space-y-8">
+        <div className="text-center space-y-4">
+          <div className="inline-block p-3 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500">
+            <Instagram className="w-8 h-8 text-white" />
+          </div>
+          <h2 className="text-2xl font-bold text-surface-900">
+            Connect Instagram Account
+          </h2>
+          <p className="text-surface-600 max-w-md mx-auto">
+            Connect your Instagram Business Account to start scheduling and automating your social media posts
+          </p>
+        </div>
+
+        <div className="space-y-6">
+          <div className="p-4 rounded-lg bg-surface-50 border border-surface-200">
+            <h3 className="font-medium text-surface-900 mb-2">What you'll get:</h3>
+            <ul className="space-y-2 text-surface-600">
+              <li className="flex items-center">
+                <span className="w-2 h-2 rounded-full bg-gradient-start mr-2" />
+                Automated post scheduling
+              </li>
+              <li className="flex items-center">
+                <span className="w-2 h-2 rounded-full bg-gradient-mid mr-2" />
+                Content optimization suggestions
+              </li>
+              <li className="flex items-center">
+                <span className="w-2 h-2 rounded-full bg-gradient-end mr-2" />
+                Performance analytics and insights
+              </li>
+            </ul>
+          </div>
+
+          <button
+            onClick={handleInstagramConnect}
+            disabled={isConnecting}
+            className="button-primary w-full flex items-center justify-center space-x-2 py-3"
+          >
+            {isConnecting ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span>Connecting...</span>
+              </>
+            ) : (
+              <>
+                <Instagram className="w-5 h-5" />
+                <span>Connect Instagram Account</span>
+              </>
+            )}
+          </button>
+        </div>
+
+        <p className="text-sm text-surface-500 text-center">
+          By connecting your account, you agree to our Terms of Service and Privacy Policy
         </p>
       </div>
-
-      <button
-        onClick={handleInstagramConnect}
-        disabled={isConnecting}
-        className="w-full flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-md text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {isConnecting ? (
-          <span className="flex items-center">
-            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            Connecting...
-          </span>
-        ) : (
-          'Connect Instagram Account'
-        )}
-      </button>
     </div>
   );
 } 
