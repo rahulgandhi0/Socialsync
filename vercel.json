@@ -26,10 +26,10 @@
     }
   ],
   "env": {
-    "VITE_SUPABASE_URL": "@vite_supabase_url",
-    "VITE_SUPABASE_ANON_KEY": "@vite_supabase_anon_key",
-    "VITE_INSTAGRAM_APP_ID": "@vite_instagram_app_id",
-    "VITE_INSTAGRAM_APP_SECRET": "@vite_instagram_app_secret",
-    "VITE_INSTAGRAM_REDIRECT_URI": "@vite_instagram_redirect_uri"
+    "VITE_SUPABASE_URL": "${VITE_SUPABASE_URL}",
+    "VITE_SUPABASE_ANON_KEY": "${VITE_SUPABASE_ANON_KEY}",
+    "VITE_INSTAGRAM_APP_ID": "${VITE_INSTAGRAM_APP_ID}",
+    "VITE_INSTAGRAM_APP_SECRET": "${VITE_INSTAGRAM_APP_SECRET}",
+    "VITE_INSTAGRAM_REDIRECT_URI": "${VITE_INSTAGRAM_REDIRECT_URI}"
   }
 } 
