@@ -39,15 +39,18 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
 
 // Test the connection in development only
 if (import.meta.env.DEV) {
-  supabase.from('instagram_accounts').select('count').limit(1)
-    .then(({ error }) => {
+  void (async () => {
+    try {
+      const { error } = await supabase.from('instagram_accounts').select('count').limit(1);
       if (error) {
         console.error('Supabase Connection Test Failed:', error);
       } else {
         console.log('✅ Supabase Connection Test Successful');
       }
-    })
-    .catch(console.error);
+    } catch (error) {
+      console.error('Supabase Connection Test Error:', error);
+    }
+  })();
 }
 
 // Export the initialized client and its type
