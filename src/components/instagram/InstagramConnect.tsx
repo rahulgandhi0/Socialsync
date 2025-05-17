@@ -12,20 +12,22 @@ export default function InstagramConnect() {
       const redirectUri = import.meta.env.VITE_INSTAGRAM_REDIRECT_URI || 
         `${window.location.origin}/instagram/auth`;
 
+      // Updated scopes for Facebook Graph API
       const scopes = [
         'instagram_basic',
         'instagram_content_publish',
-        'instagram_manage_comments',
         'instagram_manage_insights',
         'pages_show_list',
-        'pages_read_engagement'
+        'pages_read_engagement',
+        'pages_manage_posts',
+        'business_management'
       ].join(',');
 
       // Generate a random state for security
       const state = Math.random().toString(36).substring(7);
       
-      // Use Facebook Login for Instagram
-      const authUrl = `https://api.instagram.com/oauth/authorize?client_id=${
+      // Use Facebook OAuth endpoint instead of Instagram
+      const authUrl = `https://www.facebook.com/v18.0/dialog/oauth?client_id=${
         import.meta.env.VITE_INSTAGRAM_APP_ID
       }&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${
         encodeURIComponent(scopes)
@@ -39,7 +41,7 @@ export default function InstagramConnect() {
       
       const popup = window.open(
         authUrl,
-        'instagram-oauth',
+        'facebook-oauth',
         `width=${width},height=${height},left=${left},top=${top}`
       );
 
@@ -114,28 +116,28 @@ export default function InstagramConnect() {
             <Instagram className="w-8 h-8 text-white" />
           </div>
           <h2 className="text-2xl font-bold text-surface-900">
-            Connect Instagram Account
+            Connect Instagram Business Account
           </h2>
           <p className="text-surface-600 max-w-md mx-auto">
-            Connect your Instagram Business Account to start scheduling and automating your social media posts
+            Connect your Instagram Business Account through Facebook to enable post scheduling and automation
           </p>
         </div>
 
         <div className="space-y-6">
           <div className="p-4 rounded-lg bg-surface-50 border border-surface-200">
-            <h3 className="font-medium text-surface-900 mb-2">What you'll get:</h3>
+            <h3 className="font-medium text-surface-900 mb-2">Requirements:</h3>
             <ul className="space-y-2 text-surface-600">
               <li className="flex items-center">
                 <span className="w-2 h-2 rounded-full bg-gradient-start mr-2" />
-                Automated post scheduling
+                Instagram Business or Creator Account
               </li>
               <li className="flex items-center">
                 <span className="w-2 h-2 rounded-full bg-gradient-mid mr-2" />
-                Content optimization suggestions
+                Connected Facebook Page
               </li>
               <li className="flex items-center">
                 <span className="w-2 h-2 rounded-full bg-gradient-end mr-2" />
-                Performance analytics and insights
+                Admin access to both accounts
               </li>
             </ul>
           </div>
@@ -153,7 +155,7 @@ export default function InstagramConnect() {
             ) : (
               <>
                 <Instagram className="w-5 h-5" />
-                <span>Connect Instagram Account</span>
+                <span>Connect with Facebook</span>
               </>
             )}
           </button>
