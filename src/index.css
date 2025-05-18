@@ -43,7 +43,9 @@
 
 @layer components {
   .gradient-text {
-    @apply bg-gradient-to-r from-gradient-start via-gradient-mid to-gradient-end bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-gradient-start via-gradient-mid to-gradient-end bg-clip-text text-transparent font-extrabold;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    -webkit-text-stroke: 0.5px rgba(255, 255, 255, 0.2);
   }
   
   .gradient-bg {
