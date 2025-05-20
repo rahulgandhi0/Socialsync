@@ -15,18 +15,12 @@ import ImageSelectionPage from './pages/ImageSelectionPage'
 import CropAndOrderPage from './pages/CropAndOrderPage'
 import CaptionSelectionPage from './pages/CaptionSelectionPage'
 import PreviewPage from './pages/PreviewPage'
-import AboutPage from './pages/AboutPage'
 import InstagramConnect from './components/instagram/InstagramConnect'
 import InstagramAuthCallback from './pages/InstagramAuthCallback'
 import ProtectedRoute from './components/ProtectedRoute'
 import AnalyticsDashboard from './pages/AnalyticsDashboard'
 import HomePage from './pages/HomePage'
 import PoliciesPage from './pages/PoliciesPage'
-import LoginPage from './pages/LoginPage'
-import SignupPage from './pages/SignupPage'
-import EventsPage from './pages/EventsPage'
-import InstagramConnectPage from './pages/InstagramConnectPage'
-import AnalyticsPage from './pages/AnalyticsPage'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -38,21 +32,20 @@ ReactDOM.createRoot(document.getElementById('root')).render(
               <Route path="/" element={<AppLayout />}>
                 {/* Public routes */}
                 <Route index element={<HomePage />} />
-                <Route path="about" element={<AboutPage />} />
                 <Route path="policies" element={<PoliciesPage />} />
-                <Route path="login" element={<LoginPage />} />
-                <Route path="signup" element={<SignupPage />} />
+                <Route path="login" element={<AuthPage />} />
+                <Route path="signup" element={<AuthPage />} />
                 <Route path="instagram/auth" element={<InstagramAuthCallback />} />
                 
                 {/* Protected routes */}
                 <Route path="analytics" element={
                   <ProtectedRoute>
-                    <AnalyticsPage />
+                    <AnalyticsDashboard />
                   </ProtectedRoute>
                 } />
                 <Route path="events" element={
                   <ProtectedRoute>
-                    <EventsPage />
+                    <EventSearchPage />
                   </ProtectedRoute>
                 } />
                 <Route path="events/:id" element={
@@ -82,11 +75,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
                 } />
                 <Route path="instagram/connect" element={
                   <ProtectedRoute>
-                    <InstagramConnectPage />
+                    <InstagramConnect />
                   </ProtectedRoute>
                 } />
                 
-                {/* Catch-all route redirects to login */}
+                {/* Catch-all route redirects to home */}
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Route>
             </Routes>
