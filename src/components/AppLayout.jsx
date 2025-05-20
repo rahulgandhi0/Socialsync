@@ -18,7 +18,6 @@ const AppLayout = () => {
 
     async function initializeAuth() {
       try {
-        // Check current auth status
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) throw sessionError;
@@ -26,34 +25,7 @@ const AppLayout = () => {
         if (mounted) {
           setUser(session?.user ?? null);
           setLoading(false);
-          
-          // Handle navigation after setting loading to false
-          if (!session?.user && !location.pathname.includes('/login') && !location.pathname.includes('/signup') && !location.pathname.includes('/about')) {
-            navigate('/login', { replace: true });
-          }
-          
-          if (session?.user && (location.pathname.includes('/login') || location.pathname.includes('/signup'))) {
-            navigate('/events', { replace: true });
-          }
         }
-        
-        // Listen for auth changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-          if (!mounted) return;
-          
-          const currentUser = session?.user ?? null;
-          setUser(currentUser);
-          
-          if (!currentUser && !location.pathname.includes('/login') && !location.pathname.includes('/signup') && !location.pathname.includes('/about')) {
-            navigate('/login', { replace: true });
-          }
-          
-          if (currentUser && (location.pathname.includes('/login') || location.pathname.includes('/signup'))) {
-            navigate('/events', { replace: true });
-          }
-        });
-
-        authListener = subscription;
       } catch (err) {
         console.error('Auth initialization error:', err);
         if (mounted) {
@@ -66,20 +38,27 @@ const AppLayout = () => {
 
     initializeAuth();
 
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return;
+      setUser(session?.user ?? null);
+    });
+
+    authListener = subscription;
+
     return () => {
       mounted = false;
       if (authListener) {
         authListener.unsubscribe();
       }
     };
-  }, [navigate, location.pathname]);
+  }, []);
 
   const handleSignOut = async () => {
     try {
       setLoading(true);
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-      navigate('/login', { replace: true });
+      navigate('/');
       toast.success('Signed out successfully');
     } catch (error) {
       console.error('Sign out error:', error);
@@ -88,11 +67,6 @@ const AppLayout = () => {
       setLoading(false);
     }
   };
-
-  // Don't show the layout for auth pages
-  if (location.pathname === '/login' || location.pathname === '/signup') {
-    return <Outlet />;
-  }
 
   if (loading) {
     return (
@@ -130,6 +104,14 @@ const AppLayout = () => {
     );
   }
 
+  const isPublicRoute = location.pathname === '/' || location.pathname === '/policies';
+  const isAuthRoute = location.pathname === '/login' || location.pathname === '/signup';
+
+  // Don't show the layout for auth pages
+  if (isAuthRoute) {
+    return <Outlet />;
+  }
+
   return (
     <div className="min-h-screen bg-mesh-gradient">
       {/* Header */}
@@ -138,7 +120,7 @@ const AppLayout = () => {
           <div className="container mx-auto max-w-[var(--content-max-width)] px-4">
             <div className="flex items-center justify-between h-[var(--header-height)]">
               <Link 
-                to={user ? "/events" : "/"} 
+                to="/"
                 className="text-2xl font-bold gradient-text hover:animate-text-shimmer"
               >
                 SocialSync
@@ -147,6 +129,15 @@ const AppLayout = () => {
               <div className="flex items-center space-x-6">
                 {/* Desktop Navigation */}
                 <nav className="hidden md:flex items-center space-x-1">
+                  {/* Public Routes */}
+                  <Link 
+                    to="/policies" 
+                    className={`nav-link ${location.pathname === '/policies' ? 'nav-link-active' : ''}`}
+                  >
+                    Policies
+                  </Link>
+
+                  {/* Protected Routes - Only show when logged in */}
                   {user && (
                     <>
                       <Link 
@@ -169,23 +160,25 @@ const AppLayout = () => {
                       </Link>
                     </>
                   )}
-                  <Link 
-                    to="/about" 
-                    className={`nav-link ${location.pathname === '/about' ? 'nav-link-active' : ''}`}
-                  >
-                    About
-                  </Link>
-                </nav>
 
-                {user && (
-                  <button
-                    onClick={handleSignOut}
-                    className="hidden md:flex items-center space-x-2 nav-link text-surface-600 hover:text-red-600"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    <span>Sign Out</span>
-                  </button>
-                )}
+                  {/* Auth Button */}
+                  {user ? (
+                    <button
+                      onClick={handleSignOut}
+                      className="nav-link text-surface-600 hover:text-red-600 flex items-center space-x-2"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <span>Sign Out</span>
+                    </button>
+                  ) : (
+                    <Link 
+                      to="/login"
+                      className="button-primary"
+                    >
+                      Sign In
+                    </Link>
+                  )}
+                </nav>
 
                 {/* Mobile Menu Button */}
                 <button
@@ -207,6 +200,14 @@ const AppLayout = () => {
         {isMobileMenuOpen && (
           <div className="md:hidden glass border-b border-surface-200/50">
             <nav className="container mx-auto max-w-[var(--content-max-width)] px-4 py-4 space-y-2">
+              <Link 
+                to="/policies" 
+                className={`block nav-link ${location.pathname === '/policies' ? 'nav-link-active' : ''}`}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Policies
+              </Link>
+
               {user && (
                 <>
                   <Link 
@@ -232,14 +233,8 @@ const AppLayout = () => {
                   </Link>
                 </>
               )}
-              <Link 
-                to="/about" 
-                className={`block nav-link ${location.pathname === '/about' ? 'nav-link-active' : ''}`}
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                About
-              </Link>
-              {user && (
+
+              {user ? (
                 <button
                   onClick={() => {
                     handleSignOut();
@@ -250,6 +245,14 @@ const AppLayout = () => {
                   <LogOut className="w-4 h-4" />
                   <span>Sign Out</span>
                 </button>
+              ) : (
+                <Link 
+                  to="/login"
+                  className="block button-primary text-center"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Sign In
+                </Link>
               )}
             </nav>
           </div>

@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { Toaster } from 'react-hot-toast'
 import './index.css'
 
 import { EventProvider } from './context/EventContext.jsx'
@@ -17,8 +18,15 @@ import PreviewPage from './pages/PreviewPage'
 import AboutPage from './pages/AboutPage'
 import InstagramConnect from './components/instagram/InstagramConnect'
 import InstagramAuthCallback from './pages/InstagramAuthCallback'
-import ProtectedRoute from './components/auth/ProtectedRoute'
+import ProtectedRoute from './components/ProtectedRoute'
 import AnalyticsDashboard from './pages/AnalyticsDashboard'
+import HomePage from './pages/HomePage'
+import PoliciesPage from './pages/PoliciesPage'
+import LoginPage from './pages/LoginPage'
+import SignupPage from './pages/SignupPage'
+import EventsPage from './pages/EventsPage'
+import InstagramConnectPage from './pages/InstagramConnectPage'
+import AnalyticsPage from './pages/AnalyticsPage'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -29,21 +37,22 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             <Routes>
               <Route path="/" element={<AppLayout />}>
                 {/* Public routes */}
-                <Route index element={<Navigate to="/login" replace />} />
+                <Route index element={<HomePage />} />
                 <Route path="about" element={<AboutPage />} />
-                <Route path="login" element={<AuthPage />} />
-                <Route path="signup" element={<AuthPage />} />
+                <Route path="policies" element={<PoliciesPage />} />
+                <Route path="login" element={<LoginPage />} />
+                <Route path="signup" element={<SignupPage />} />
                 <Route path="instagram/auth" element={<InstagramAuthCallback />} />
                 
                 {/* Protected routes */}
                 <Route path="analytics" element={
                   <ProtectedRoute>
-                    <AnalyticsDashboard />
+                    <AnalyticsPage />
                   </ProtectedRoute>
                 } />
                 <Route path="events" element={
                   <ProtectedRoute>
-                    <EventSearchPage />
+                    <EventsPage />
                   </ProtectedRoute>
                 } />
                 <Route path="events/:id" element={
@@ -73,17 +82,18 @@ ReactDOM.createRoot(document.getElementById('root')).render(
                 } />
                 <Route path="instagram/connect" element={
                   <ProtectedRoute>
-                    <InstagramConnect />
+                    <InstagramConnectPage />
                   </ProtectedRoute>
                 } />
                 
                 {/* Catch-all route redirects to login */}
-                <Route path="*" element={<Navigate to="/login" replace />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
               </Route>
             </Routes>
           </BrowserRouter>
         </AnalyticsProvider>
       </EventProvider>
     </UploadProvider>
+    <Toaster position="top-center" />
   </React.StrictMode>
 ) 
