@@ -26,11 +26,8 @@ const PoliciesPage = () => {
               <div>
                 <h3 className="text-lg font-medium text-surface-700 mb-3">Information We Collect</h3>
                 <ul className="list-disc pl-5 space-y-2">
-                  <li>Account information (name, email, profile picture)</li>
-                  <li>Event preferences and attendance history</li>
-                  <li>Location data (with your permission)</li>
-                  <li>Device and usage information</li>
-                  <li>Instagram Business Account data</li>
+                  <li>Email address (for authentication)</li>
+                  <li>Instagram Business Account data (with your permission)</li>
                   <li>Post scheduling and analytics data</li>
                 </ul>
               </div>
@@ -39,10 +36,9 @@ const PoliciesPage = () => {
                 <h3 className="text-lg font-medium text-surface-700 mb-3">How We Use Your Information</h3>
                 <ul className="list-disc pl-5 space-y-2">
                   <li>Provide and improve our services</li>
-                  <li>Personalize your event recommendations</li>
                   <li>Process and schedule your Instagram posts</li>
-                  <li>Generate analytics and insights</li>
-                  <li>Send relevant notifications and updates</li>
+                  <li>Generate analytics and insights for your posts</li>
+                  <li>Send important service updates and notifications</li>
                   <li>Ensure platform security and prevent fraud</li>
                 </ul>
               </div>
