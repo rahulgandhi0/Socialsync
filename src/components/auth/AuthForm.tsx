@@ -54,30 +54,28 @@ export default function AuthForm() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-mesh-gradient">
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-gradient-to-br from-[#4361EE] via-[#7209B7] to-[#3A0CA3]">
       <div className="w-full max-w-md">
         {/* Logo and Title */}
         <div className="text-center mb-8">
-          <div className="inline-block bg-white rounded-2xl p-4 mb-4 shadow-lg">
-            <h1 className="text-4xl font-bold gradient-text animate-text-shimmer bg-clip-text text-transparent bg-gradient-to-r from-gradient-start via-gradient-mid to-gradient-end">
-              SocialSync
-            </h1>
-          </div>
-          <p className="text-white text-lg">
+          <h1 className="text-5xl font-bold text-white mb-3">
+            SocialSync
+          </h1>
+          <p className="text-white/90 text-lg">
             {isSignUp ? 'Create an account to get started' : 'Welcome back! Sign in to continue'}
           </p>
         </div>
 
         {/* Auth Form */}
-        <div className="glass-card p-8 space-y-6">
-          <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 shadow-xl">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-4">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-surface-700 mb-1">
+                <label htmlFor="email" className="block text-sm font-medium text-white/90 mb-1">
                   Email address
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-surface-400" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
                   <input
                     id="email"
                     name="email"
@@ -86,18 +84,18 @@ export default function AuthForm() {
                     required
                     value={formData.email}
                     onChange={handleInputChange}
-                    className="input-primary pl-10"
+                    className="w-full bg-white/5 border border-white/10 rounded-lg py-2.5 pl-10 pr-4 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/25 focus:border-transparent transition-all"
                     placeholder="you@example.com"
                   />
                 </div>
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-surface-700 mb-1">
+                <label htmlFor="password" className="block text-sm font-medium text-white/90 mb-1">
                   Password
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-surface-400" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
                   <input
                     id="password"
                     name="password"
@@ -106,7 +104,7 @@ export default function AuthForm() {
                     required
                     value={formData.password}
                     onChange={handleInputChange}
-                    className="input-primary pl-10"
+                    className="w-full bg-white/5 border border-white/10 rounded-lg py-2.5 pl-10 pr-4 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/25 focus:border-transparent transition-all"
                     placeholder="••••••••"
                   />
                 </div>
@@ -114,11 +112,11 @@ export default function AuthForm() {
 
               {isSignUp && (
                 <div>
-                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-surface-700 mb-1">
+                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-white/90 mb-1">
                     Confirm Password
                   </label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-surface-400" />
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
                     <input
                       id="confirmPassword"
                       name="confirmPassword"
@@ -127,7 +125,7 @@ export default function AuthForm() {
                       required
                       value={formData.confirmPassword}
                       onChange={handleInputChange}
-                      className="input-primary pl-10"
+                      className="w-full bg-white/5 border border-white/10 rounded-lg py-2.5 pl-10 pr-4 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/25 focus:border-transparent transition-all"
                       placeholder="••••••••"
                     />
                   </div>
@@ -138,7 +136,7 @@ export default function AuthForm() {
             <button
               type="submit"
               disabled={isLoading}
-              className="button-primary w-full flex items-center justify-center space-x-2 py-3"
+              className="w-full bg-white/10 hover:bg-white/15 text-white rounded-lg py-2.5 flex items-center justify-center space-x-2 transition-all focus:outline-none focus:ring-2 focus:ring-white/25"
             >
               {isLoading ? (
                 <>
@@ -161,24 +159,15 @@ export default function AuthForm() {
                 </>
               )}
             </button>
+
+            <button
+              type="button"
+              onClick={() => setIsSignUp(!isSignUp)}
+              className="w-full text-sm text-white/70 hover:text-white mt-3 transition-colors text-center"
+            >
+              {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
+            </button>
           </form>
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-surface-200"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-surface-500">or</span>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setIsSignUp(!isSignUp)}
-            className="button-secondary w-full"
-          >
-            {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
-          </button>
         </div>
       </div>
     </div>
