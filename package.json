@@ -34,6 +34,7 @@
     "esbuild": "^0.25.4",
     "express": "^4.21.2",
     "express-rate-limit": "^7.5.0",
+    "framer-motion": "^12.12.1",
     "helmet": "^8.1.0",
     "isomorphic-dompurify": "^2.24.0",
     "lucide-react": "^0.510.0",
