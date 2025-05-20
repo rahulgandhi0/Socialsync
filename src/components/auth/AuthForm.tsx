@@ -58,10 +58,12 @@ export default function AuthForm() {
       <div className="w-full max-w-md">
         {/* Logo and Title */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold gradient-text mb-2">
-            SocialSync
-          </h1>
-          <p className="text-surface-600">
+          <div className="inline-block bg-white rounded-2xl p-4 mb-4 shadow-lg">
+            <h1 className="text-4xl font-bold gradient-text animate-text-shimmer bg-clip-text text-transparent bg-gradient-to-r from-gradient-start via-gradient-mid to-gradient-end">
+              SocialSync
+            </h1>
+          </div>
+          <p className="text-white text-lg">
             {isSignUp ? 'Create an account to get started' : 'Welcome back! Sign in to continue'}
           </p>
         </div>
