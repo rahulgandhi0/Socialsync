@@ -291,16 +291,16 @@ function PostCard({ post }: { post: PostAnalytics }) {
       <div className="p-4">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm text-gray-500">
-            {format(new Date(post.publish_time), 'MMM d, yyyy')}
+            {format(new Date(post.posted_at), 'MMM d, yyyy')}
           </span>
           <span className="text-sm font-medium text-purple-600">
-            {(post.metrics?.engagement_rate || 0 * 100).toFixed(2)}% Engagement
+            {(post.engagement_rate || 0).toFixed(2)}% Engagement
           </span>
         </div>
         <div className="flex items-center space-x-4 text-sm text-gray-600">
-          <span>❤️ {post.metrics?.likes || 0}</span>
-          <span>💬 {post.metrics?.comments || 0}</span>
-          <span>🔄 {post.metrics?.shares || 0}</span>
+          <span>❤️ {post.likes || 0}</span>
+          <span>💬 {post.comments || 0}</span>
+          <span>🔄 {post.shares || 0}</span>
         </div>
       </div>
     </div>
