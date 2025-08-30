@@ -6,6 +6,7 @@ import { instagramService } from './instagram';
 export interface ScheduledPost {
   id: string;
   user_id: string;
+  instagram_account_id: string;
   instagram_media_id: string;
   scheduled_time: string;
   status: 'scheduled' | 'processing' | 'published' | 'failed';
@@ -151,14 +152,25 @@ class SchedulerService {
   private async trackPostMetrics(post: ScheduledPost) {
     try {
       const { error } = await supabase
-        .from('post_analytics')
+        .from('posted_content')
         .insert({
-          post_id: post.id,
           user_id: post.user_id,
-          scheduled_time: post.scheduled_time,
-          publish_time: new Date().toISOString(),
-          status: 'published',
-          media_count: post.media_urls.length,
+          instagram_account_id: post.instagram_account_id, // This field should exist in scheduled_posts
+          instagram_post_id: post.instagram_media_id,
+          media_url: post.media_urls[0] || '', // Primary media URL
+          media_urls: post.media_urls, // All media URLs for carousel
+          caption: post.caption,
+          posted_at: new Date().toISOString(),
+          // Initialize analytics fields with zeros
+          likes: 0,
+          comments: 0,
+          shares: 0,
+          saves: 0,
+          reach: 0,
+          impressions: 0,
+          profile_visits: 0,
+          website_clicks: 0,
+          engagement_rate: 0,
         });
 
       if (error) throw error;
@@ -191,14 +203,14 @@ class SchedulerService {
   async getPostAnalytics(userId: string, timeRange?: { start: Date; end: Date }) {
     try {
       let query = supabase
-        .from('post_analytics')
+        .from('posted_content')
         .select('*')
         .eq('user_id', userId);
 
       if (timeRange) {
         query = query
-          .gte('scheduled_time', timeRange.start.toISOString())
-          .lte('scheduled_time', timeRange.end.toISOString());
+          .gte('posted_at', timeRange.start.toISOString())
+          .lte('posted_at', timeRange.end.toISOString());
       }
 
       const { data, error } = await query;

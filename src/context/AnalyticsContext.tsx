@@ -79,7 +79,7 @@ export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
     try {
       // Fetch analytics summary
       const { data: analyticsSummary, error: analyticsError } = await supabase
-        .from('post_analytics_summary')
+        .from('analytics_summary')
         .select('*')
         .single();
 
